@@ -98,6 +98,62 @@ Make a move in a specific game.
 }
 ```
 
+## Player Management
+
+The API now includes functionality for managing player information, including their win-loss-draw record.
+
+### GET /players
+
+Retrieve a list of all players.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Player 1",
+    "wins": 10,
+    "losses": 5,
+    "draws": 3,
+    "total_games": 18,
+    "win_rate": 55.56
+  },
+  {
+    "id": 2,
+    "name": "Player 2",
+    "wins": 8,
+    "losses": 7,
+    "draws": 2,
+    "total_games": 17,
+    "win_rate": 47.06
+  }
+]
+```
+
+### POST /players
+
+Create a new player.
+
+**Request Body:**
+```json
+{
+  "name": "New Player"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 3,
+  "name": "New Player",
+  "wins": 0,
+  "losses": 0,
+  "draws": 0,
+  "total_games": 0,
+  "win_rate": 0.0
+}
+```
+
 ## Game States
 
 - `playing` - Game is in progress
