@@ -10,6 +10,7 @@ A full-stack tic-tac-toe game built with Ruby/Sinatra and vanilla JavaScript, fe
 - 🔄 Real-time game state management
 - 📊 Game persistence with SQLite
 - 📈 Comprehensive game statistics and analytics
+- 🏆 Competitive leaderboard system
 
 ### Documentation Agent Features
 - 🤖 AI-powered documentation updates
@@ -88,6 +89,22 @@ The Game Statistics system provides comprehensive analytics and tracking for tic
 
 See [STATISTICS.md](docs/STATISTICS.md) for detailed documentation on the game statistics features.
 
+## Leaderboard System
+
+The Leaderboard system allows players to compete against each other and track their performance. The leaderboard displays the top players based on various metrics, such as total wins, win rate, and total games played.
+
+### Leaderboard API
+
+- `GET /api/leaderboard?type=wins&limit=10`: Retrieve the top 10 players by total wins.
+- `GET /api/leaderboard?type=win_rate&limit=10`: Retrieve the top 10 players by win rate.
+- `GET /api/leaderboard?type=games&limit=10`: Retrieve the top 10 players by total games played.
+
+The `type` parameter can be one of `wins`, `win_rate`, or `games`, and the `limit` parameter specifies the maximum number of results to return (up to 50).
+
+### Leaderboard UI
+
+The leaderboard is also accessible through the `/leaderboard.html` page, which provides a user-friendly interface to view and interact with the leaderboard data.
+
 ## Project Structure
 
 ```
@@ -98,6 +115,7 @@ tic-tac-toe-app/
 │   │   └── room.rb          # Room management
 │   │   └── player.rb        # Player management
 │   │   └── game_statistic.rb # Game statistics
+│   │   └── leaderboard.rb   # Leaderboard management
 │   └── application.rb       # Main Sinatra application
 │   └── websocket_server.rb  # WebSocket server
 ├── doc-agent/
@@ -110,10 +128,12 @@ tic-tac-toe-app/
 │   └── API.md              # API documentation
 │   └── MULTIPLAYER.md      # Multiplayer system documentation
 │   └── STATISTICS.md       # Game statistics documentation
+│   └── LEADERBOARD.md      # Leaderboard system documentation
 ├── public/
 │   └── index.html          # Frontend interface
 │   └── multiplayer.html    # Multiplayer frontend
 │   └── statistics.html     # Statistics dashboard
+│   └── leaderboard.html    # Leaderboard frontend
 └── db/
     └── migrate/            # Database migrations
 ```
@@ -133,6 +153,15 @@ The `Game` model handles:
 - Game state transitions
 - Board serialization
 - Game statistics tracking
+- Leaderboard updates
+
+### Leaderboard System
+
+The `Leaderboard` model provides the following functionality:
+- Tracking player performance metrics (wins, losses, draws, total games)
+- Maintaining win streaks and fastest win records
+- Efficient retrieval of leaderboard data by various criteria (wins, win rate, total games)
+- Automatic updates when new games are completed
 
 ### Documentation Agent Architecture
 
