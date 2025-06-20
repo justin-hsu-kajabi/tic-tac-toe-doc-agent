@@ -20,6 +20,7 @@ class WebhookHandler
     
     if pr_title.include?('📚 Update documentation') || 
        pr_title.include?('doc-update') ||
+       pr_title.start_with?('[DOC_UPDATE]') ||
        pr_user == 'github-actions[bot]'
       puts "Skipping doc agent analysis for documentation-only PR: #{pr_title}"
       return
@@ -116,7 +117,7 @@ class WebhookHandler
       repo_name,
       base_branch,
       branch_name,
-      "📚 Update documentation for PR ##{original_pr['number']}",
+      "[DOC_UPDATE] #{original_pr['title']}",
       generate_combined_pr_body(original_pr, doc_updates.keys)
     )
   end

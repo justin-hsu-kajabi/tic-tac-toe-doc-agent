@@ -12,6 +12,7 @@ jobs:
       github.event.pull_request.draft == false &&
       !startsWith(github.event.pull_request.title, '📚 Update documentation for PR') &&
       !contains(github.event.pull_request.title, 'doc-update') &&
+      !startsWith(github.event.pull_request.title, '[DOC_UPDATE]') &&
       github.actor != 'github-actions[bot]'
     
     steps:
