@@ -10,25 +10,52 @@ class DocUpdater
   end
 
   def update_documentation(doc_file, changes, pr_summary)
-    return nil unless @api_key
+    if @api_key.nil? || @api_key.empty?
+      puts "Warning: GEMINI_API_KEY not set or empty"
+      return nil
+    end
+    
+    puts "Gemini API key present: #{@api_key[0..10]}..."
     
     # Get existing documentation content if it exists
     existing_content = get_existing_doc_content(doc_file)
+    puts "Existing content length: #{existing_content&.length || 0} characters"
     
     # Generate prompt for Gemini
     prompt = build_update_prompt(doc_file, existing_content, changes, pr_summary)
+    puts "Generated prompt length: #{prompt.length} characters"
     
     # Call Gemini API
+    puts "Calling Gemini API..."
     response = call_gemini_api(prompt)
     
-    if response && response['candidates'] && response['candidates'].first
-      content = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
-      content&.strip&.empty? ? nil : content
+    if response
+      puts "Gemini response received"
+      if response['error']
+        puts "Gemini API error: #{response['error']['message']}"
+        return nil
+      end
+      
+      if response['candidates'] && response['candidates'].first
+        content = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
+        if content&.strip&.empty?
+          puts "Gemini returned empty content"
+          nil
+        else
+          puts "Gemini generated #{content.length} characters"
+          content
+        end
+      else
+        puts "No candidates in Gemini response: #{response.inspect}"
+        nil
+      end
     else
+      puts "No response from Gemini API"
       nil
     end
   rescue => e
     puts "Error updating documentation with Gemini: #{e.message}"
+    puts e.backtrace.first(3).join("\n")
     nil
   end
 
@@ -38,6 +65,7 @@ class DocUpdater
     conn = Faraday.new(url: @base_url) do |faraday|
       faraday.request :json
       faraday.response :json
+      faraday.response :logger # Add logging
       faraday.adapter Faraday.default_adapter
     end
 
@@ -53,13 +81,18 @@ class DocUpdater
       ]
     }
 
+    puts "Sending request to Gemini API..."
     response = conn.post do |req|
       req.url "?key=#{@api_key}"
       req.headers['Content-Type'] = 'application/json'
       req.body = payload
     end
 
+    puts "Response status: #{response.status}"
     response.body
+  rescue => e
+    puts "API call failed: #{e.message}"
+    nil
   end
 
   def get_existing_doc_content(doc_file)
