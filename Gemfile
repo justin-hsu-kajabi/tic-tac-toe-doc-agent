@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.0.6"
+ruby "~> 3.3"
 
 gem "sinatra", "~> 3.0"
 gem "sinatra-contrib", "~> 3.0"
