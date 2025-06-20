@@ -101,6 +101,78 @@ fetch('/api/rooms/ABCD/join', {
 .catch(error => console.error('Error joining room:', error));
 ```
 
+## Game Statistics and Analytics System
+
+The Game Statistics system provides comprehensive analytics and tracking for tic-tac-toe gameplay. It automatically captures game metrics, aggregates daily statistics, and provides insights through a real-time dashboard.
+
+### Automatic Data Collection
+
+- **Game Tracking**: Every game automatically records duration, moves, winner, and game type.
+- **Daily Aggregation**: Statistics are aggregated by date for historical analysis.
+- **Real-time Updates**: Statistics update immediately when games finish.
+
+### Comprehensive Metrics
+
+- **Win/Loss/Draw Rates**: Track your success across all game types.
+- **Game Duration**: Average time spent per game.
+- **Move Efficiency**: Fastest wins and longest games.
+- **Game Type Distribution**: Solo vs multiplayer game preferences.
+
+### Performance Analytics
+
+- **Success Rates**: Detailed win percentages and trends.
+- **Speed Metrics**: Track improvement in game completion speed.
+
+### Usage Examples
+
+#### Accessing Daily Statistics
+
+```javascript
+// Fetch the statistics for the current day
+fetch('/api/statistics')
+.then(response => response.json())
+.then(data => {
+  console.log('Daily Statistics:', data);
+})
+.catch(error => console.error('Error fetching daily statistics:', error));
+```
+
+#### Accessing Summary Statistics
+
+```javascript
+// Fetch the summary statistics for the last 30 days
+fetch('/api/statistics/summary?period=30')
+.then(response => response.json())
+.then(data => {
+  console.log('Summary Statistics:', data);
+})
+.catch(error => console.error('Error fetching summary statistics:', error));
+```
+
+#### Accessing Weekly Statistics
+
+```javascript
+// Fetch the weekly summary statistics
+fetch('/api/statistics/weekly')
+.then(response => response.json())
+.then(data => {
+  console.log('Weekly Statistics:', data);
+})
+.catch(error => console.error('Error fetching weekly statistics:', error));
+```
+
+#### Accessing Recent Games
+
+```javascript
+// Fetch the 10 most recent games
+fetch('/api/statistics/games?limit=10')
+.then(response => response.json())
+.then(data => {
+  console.log('Recent Games:', data);
+})
+.catch(error => console.error('Error fetching recent games:', error));
+```
+
 ## Documentation Updates
 
 The documentation update process is handled by a custom "doc agent" that automatically updates the documentation based on changes in the codebase. The doc agent uses the Anthropic API to generate the updated documentation content.

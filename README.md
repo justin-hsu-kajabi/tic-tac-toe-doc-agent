@@ -9,6 +9,7 @@ A full-stack tic-tac-toe game built with Ruby/Sinatra and vanilla JavaScript, fe
 - 🎮 Clean, responsive web interface
 - 🔄 Real-time game state management
 - 📊 Game persistence with SQLite
+- 📈 Comprehensive game statistics and analytics
 
 ### Documentation Agent Features
 - 🤖 AI-powered documentation updates
@@ -132,6 +133,9 @@ class Game < ActiveRecord::Base
   belongs_to :room, optional: true
   serialize :board, type: Array
   
+  before_create :set_game_start_time
+  after_update :update_statistics, if: :game_finished?
+
   def make_move(position, player_session_id = nil)
     # Validate move and update game state
   end
@@ -143,6 +147,11 @@ end
   - `current_player`: Current player's symbol (X or O)
   - `status`: Game status (playing, won, drawn)
   - `player_x`, `player_o`: Names of the players
+  - `move_count`: Number of moves made in the game
+  - `started_at`: Timestamp when the game started
+  - `finished_at`: Timestamp when the game ended
+  - `game_type`: Type of game (solo or multiplayer)
+  - `winner_player`: Symbol of the winning player
 
 ### Usage
 
@@ -205,6 +214,60 @@ To make a move in the game, send a WebSocket message with the following format:
 
 The server will validate the move and update the game state, then broadcast the updated state to both players.
 
+## Game Statistics System
+
+The Game Statistics system provides comprehensive analytics and tracking for tic-tac-toe gameplay. It automatically captures game metrics, aggregates daily statistics, and provides insights through a real-time dashboard.
+
+### Features
+
+#### 📊 Automatic Data Collection
+- **Game Tracking**: Every game automatically records duration, moves, winner, and game type
+- **Daily Aggregation**: Statistics are aggregated by date for historical analysis
+- **Real-time Updates**: Statistics update immediately when games finish
+
+#### 📈 Comprehensive Metrics
+- **Win/Loss/Draw Rates**: Track your success across all game types
+- **Game Duration**: Average time spent per game
+- **Move Efficiency**: Fastest wins and longest games
+- **Game Type Distribution**: Solo vs multiplayer game preferences
+
+#### 🎯 Performance Analytics
+- **Success Rates**: Detailed win percentages and trends
+- **Speed Metrics**: Track improvement in game completion speed
+- **Game Type Preferences**: Understand your preferred game mode
+
+### Usage
+
+#### Accessing Game Statistics
+You can access the game statistics through the following API endpoints:
+
+- `GET /api/statistics`: Retrieve the statistics for the current day
+- `GET /api/statistics/summary?period=30`: Get a summary of the statistics for the last 30 days
+- `GET /api/statistics/weekly`: Retrieve the weekly summary of game statistics
+- `GET /api/statistics/games?limit=10`: Get a list of the most recent completed games
+
+The responses from these endpoints will provide you with the relevant statistics and game data to power your analytics dashboard.
+
+### Integration with Game Models
+The game statistics are automatically updated when games are created and finished. The `GameStatistic` model handles the aggregation and calculation of the various metrics.
+
+```ruby
+class Game < ActiveRecord::Base
+  before_create :set_game_start_time
+  after_update :update_statistics, if: :game_finished?
+
+  def update_statistics
+    GameStatistic.update_for_game(self)
+  end
+end
+
+class GameStatistic < ActiveRecord::Base
+  def self.update_for_game(game)
+    # Update various game statistics based on the game data
+  end
+}
+```
+
 ## Project Structure
 
 ```
@@ -214,6 +277,7 @@ tic-tac-toe-app/
 │   │   └── game.rb          # Game logic and state
 │   │   └── room.rb          # Room management
 │   │   └── player.rb        # Player management
+│   │   └── game_statistic.rb # Game statistics management
 │   └── application.rb       # Main Sinatra application
 │   └── websocket_server.rb  # WebSocket server
 ├── doc-agent/
@@ -225,9 +289,11 @@ tic-tac-toe-app/
 ├── docs/
 │   └── API.md              # API documentation
 │   └── MULTIPLAYER.md      # Multiplayer system documentation
+│   └── STATISTICS.md       # Game statistics documentation
 ├── public/
 │   └── index.html          # Frontend interface
 │   └── multiplayer.html    # Multiplayer frontend
+│   └── statistics.html     # Game statistics dashboard
 └── db/
     └── migrate/            # Database migrations
 ```
@@ -246,6 +312,7 @@ The `Game` model handles:
 - Win condition checking
 - Game state transitions
 - Board serialization
+- Game statistics updates
 
 ### Documentation Agent Architecture
 
