@@ -15,6 +15,20 @@ rescue LoadError
   # GameStatistic not available, statistics features will be disabled
 end
 
+# Load Leaderboard model if it exists (for backward compatibility)
+begin
+  require_relative 'models/leaderboard'
+rescue LoadError
+  # Leaderboard not available, leaderboard features will be disabled
+end
+
+# Load Achievement model if it exists (for backward compatibility)
+begin
+  require_relative 'models/achievement'
+rescue LoadError
+  # Achievement not available, achievement features will be disabled
+end
+
 class Application < Sinatra::Base
   configure do
     db_config = {
@@ -199,6 +213,161 @@ class Application < Sinatra::Base
       
       result
     }
+  end
+
+  # Leaderboard API Routes (only if Leaderboard is available)
+  get '/api/leaderboard' do
+    if defined?(Leaderboard)
+      leaderboard_type = params[:type] || 'wins'
+      limit = [params[:limit]&.to_i || 10, 50].min
+      
+      leaderboard = case leaderboard_type
+                   when 'wins'
+                     Leaderboard.top_players(limit)
+                   when 'win_rate'
+                     Leaderboard.by_win_rate(limit)
+                   when 'games'
+                     Leaderboard.by_total_games(limit)
+                   else
+                     Leaderboard.top_players(limit)
+                   end
+      
+      json leaderboard.map { |entry|
+        {
+          player_name: entry.player_name,
+          total_games: entry.total_games,
+          wins: entry.wins,
+          losses: entry.losses,
+          draws: entry.draws,
+          win_rate: entry.win_rate,
+          current_win_streak: entry.current_win_streak,
+          best_win_streak: entry.best_win_streak,
+          fastest_win_moves: entry.fastest_win_moves,
+          rank_by_wins: entry.rank_by_wins,
+          rank_by_win_rate: entry.rank_by_win_rate
+        }
+      }
+    else
+      json({ error: 'Leaderboard not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/leaderboard/:player_name' do
+    if defined?(Leaderboard)
+      player = Leaderboard.find_by(player_name: params[:player_name])
+      
+      if player
+        json({
+          player_name: player.player_name,
+          total_games: player.total_games,
+          wins: player.wins,
+          losses: player.losses,
+          draws: player.draws,
+          win_rate: player.win_rate,
+          current_win_streak: player.current_win_streak,
+          best_win_streak: player.best_win_streak,
+          fastest_win_moves: player.fastest_win_moves,
+          rank_by_wins: player.rank_by_wins,
+          rank_by_win_rate: player.rank_by_win_rate,
+          last_game_at: player.last_game_at
+        })
+      else
+        status 404
+        json({ error: 'Player not found in leaderboard' })
+      end
+    else
+      json({ error: 'Leaderboard not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/leaderboard/stats/summary' do
+    if defined?(Leaderboard)
+      total_players = Leaderboard.count
+      active_players = Leaderboard.where('total_games > 0').count
+      top_player = Leaderboard.order(wins: :desc).first
+      most_games = Leaderboard.order(total_games: :desc).first
+      
+      json({
+        total_players: total_players,
+        active_players: active_players,
+        top_player: top_player ? {
+          name: top_player.player_name,
+          wins: top_player.wins,
+          win_rate: top_player.win_rate
+        } : nil,
+        most_active: most_games ? {
+          name: most_games.player_name,
+          total_games: most_games.total_games,
+          win_rate: most_games.win_rate
+        } : nil
+      })
+    else
+      json({ error: 'Leaderboard not available - please run database migrations' })
+    end
+  end
+
+  # Achievement API Routes (only if Achievement is available)
+  get '/api/achievements' do
+    if defined?(Achievement)
+      limit = [params[:limit]&.to_i || 20, 100].min
+      
+      if params[:player_name]
+        achievements = Achievement.for_player(params[:player_name])
+      else
+        achievements = Achievement.recent_achievements(limit)
+      end
+      
+      json achievements.map { |achievement|
+        {
+          id: achievement.id,
+          player_name: achievement.player_name,
+          achievement_type: achievement.achievement_type,
+          title: achievement.title,
+          description: achievement.description,
+          icon: achievement.icon,
+          earned_at: achievement.earned_at
+        }
+      }
+    else
+      json({ error: 'Achievements not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/achievements/:player_name' do
+    if defined?(Achievement)
+      achievements = Achievement.for_player(params[:player_name])
+      
+      json({
+        player_name: params[:player_name],
+        total_achievements: achievements.count,
+        achievements: achievements.map { |achievement|
+          {
+            achievement_type: achievement.achievement_type,
+            title: achievement.title,
+            description: achievement.description,
+            icon: achievement.icon,
+            earned_at: achievement.earned_at
+          }
+        }
+      })
+    else
+      json({ error: 'Achievements not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/achievements/definitions/all' do
+    if defined?(Achievement)
+      json Achievement::ACHIEVEMENT_DEFINITIONS.map { |type, definition|
+        {
+          achievement_type: type,
+          title: definition[:title],
+          description: definition[:description],
+          icon: definition[:icon]
+        }
+      }
+    else
+      json({ error: 'Achievements not available - please run database migrations' })
+    end
   end
 
   # Doc agent webhook endpoint

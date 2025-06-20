@@ -92,5 +92,10 @@ class Game < ActiveRecord::Base
     if defined?(GameStatistic)
       GameStatistic.update_for_game(self)
     end
+    
+    # Update leaderboard if available
+    if defined?(Leaderboard)
+      Leaderboard.update_for_game(self)
+    end
   end
 end

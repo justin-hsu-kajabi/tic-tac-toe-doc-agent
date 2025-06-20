@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - Leaderboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .nav-tab.active {
+            background: white;
+            border-bottom-color: #007bff;
+            color: #007bff;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .leaderboard-table th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .leaderboard-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .leaderboard-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #e3f2fd;
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+
+        .rank {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #007bff;
+        }
+
+        .rank.top-3 {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .stat-card .subtitle {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin: 5px 0 0 0;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .win-rate {
+            font-weight: 600;
+        }
+
+        .win-rate.excellent { color: #28a745; }
+        .win-rate.good { color: #17a2b8; }
+        .win-rate.average { color: #ffc107; }
+        .win-rate.poor { color: #dc3545; }
+
+        .streak {
+            background: #e7f3ff;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            color: #0066cc;
+        }
+
+        .achievement-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #ffd700;
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .achievement-icon {
+            font-size: 3em;
+            margin-right: 20px;
+            text-align: center;
+            width: 80px;
+        }
+
+        .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 5px 0;
+        }
+
+        .achievement-description {
+            color: #666;
+            margin: 0 0 10px 0;
+        }
+
+        .achievement-meta {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .achievement-player {
+            font-weight: 600;
+            color: #007bff;
+        }
+
+        @media (max-width: 768px) {
+            .leaderboard-table {
+                font-size: 14px;
+            }
+            
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 8px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Leaderboard</h1>
+            <p>Top players and competitive statistics</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('wins')">Top Winners</button>
+            <button class="nav-tab" onclick="showTab('winrate')">Best Win Rate</button>
+            <button class="nav-tab" onclick="showTab('games')">Most Active</button>
+            <button class="nav-tab" onclick="showTab('achievements')">🏆 Achievements</button>
+            <button class="nav-tab" onclick="showTab('summary')">Overview</button>
+        </div>
+
+        <div class="content">
+            <div id="wins-tab" class="tab-content active">
+                <h2>Top Players by Wins</h2>
+                <div id="wins-leaderboard" class="loading">Loading leaderboard...</div>
+            </div>
+
+            <div id="winrate-tab" class="tab-content">
+                <h2>Best Win Rate (min. 5 games)</h2>
+                <div id="winrate-leaderboard" class="loading">Loading leaderboard...</div>
+            </div>
+
+            <div id="games-tab" class="tab-content">
+                <h2>Most Active Players</h2>
+                <div id="games-leaderboard" class="loading">Loading leaderboard...</div>
+            </div>
+
+            <div id="achievements-tab" class="tab-content">
+                <h2>Recent Achievements</h2>
+                <div id="achievements-list" class="loading">Loading achievements...</div>
+            </div>
+
+            <div id="summary-tab" class="tab-content">
+                <h2>Leaderboard Overview</h2>
+                <div id="summary-stats" class="loading">Loading stats...</div>
+            </div>
+
+            <a href="/" class="back-link">← Back to Game</a>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'wins';
+
+        function showTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            currentTab = tabName;
+            
+            if (tabName === 'summary') {
+                loadSummaryStats();
+            } else if (tabName === 'achievements') {
+                loadAchievements();
+            } else {
+                loadLeaderboard(tabName === 'winrate' ? 'win_rate' : tabName);
+            }
+        }
+
+        async function loadLeaderboard(type) {
+            const containerId = type === 'win_rate' ? 'winrate-leaderboard' : type + '-leaderboard';
+            const container = document.getElementById(containerId);
+            
+            try {
+                container.innerHTML = '<div class="loading">Loading leaderboard...</div>';
+                
+                const response = await fetch(`/api/leaderboard?type=${type}&limit=20`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    container.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No players found. Play some games to see the leaderboard!</p>';
+                    return;
+                }
+                
+                const table = createLeaderboardTable(data, type);
+                container.innerHTML = table;
+                
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                container.innerHTML = '<div class="error">Error loading leaderboard. Please try again.</div>';
+            }
+        }
+
+        function createLeaderboardTable(data, type) {
+            const headers = {
+                'wins': ['Rank', 'Player', 'Wins', 'Total Games', 'Win Rate', 'Current Streak', 'Best Streak'],
+                'win_rate': ['Rank', 'Player', 'Win Rate', 'Wins', 'Total Games', 'Current Streak', 'Fastest Win'],
+                'games': ['Rank', 'Player', 'Total Games', 'Wins', 'Win Rate', 'Best Streak', 'Fastest Win']
+            };
+            
+            let html = '<table class="leaderboard-table"><thead><tr>';
+            headers[type].forEach(header => {
+                html += `<th>${header}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            data.forEach((player, index) => {
+                const rank = index + 1;
+                const rankClass = rank <= 3 ? 'rank top-3' : 'rank';
+                const winRateClass = getWinRateClass(player.win_rate);
+                
+                html += '<tr>';
+                
+                if (type === 'wins') {
+                    html += `
+                        <td><span class="${rankClass}">#${rank}</span></td>
+                        <td class="player-name">${player.player_name}</td>
+                        <td><strong>${player.wins}</strong></td>
+                        <td>${player.total_games}</td>
+                        <td class="win-rate ${winRateClass}">${player.win_rate}%</td>
+                        <td><span class="streak">${player.current_win_streak || 0}</span></td>
+                        <td>${player.best_win_streak || 0}</td>
+                    `;
+                } else if (type === 'win_rate') {
+                    html += `
+                        <td><span class="${rankClass}">#${rank}</span></td>
+                        <td class="player-name">${player.player_name}</td>
+                        <td class="win-rate ${winRateClass}"><strong>${player.win_rate}%</strong></td>
+                        <td>${player.wins}</td>
+                        <td>${player.total_games}</td>
+                        <td><span class="streak">${player.current_win_streak || 0}</span></td>
+                        <td>${player.fastest_win_moves || 'N/A'}</td>
+                    `;
+                } else { // games
+                    html += `
+                        <td><span class="${rankClass}">#${rank}</span></td>
+                        <td class="player-name">${player.player_name}</td>
+                        <td><strong>${player.total_games}</strong></td>
+                        <td>${player.wins}</td>
+                        <td class="win-rate ${winRateClass}">${player.win_rate}%</td>
+                        <td>${player.best_win_streak || 0}</td>
+                        <td>${player.fastest_win_moves || 'N/A'}</td>
+                    `;
+                }
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            return html;
+        }
+
+        function getWinRateClass(winRate) {
+            if (winRate >= 80) return 'excellent';
+            if (winRate >= 60) return 'good';
+            if (winRate >= 40) return 'average';
+            return 'poor';
+        }
+
+        async function loadSummaryStats() {
+            const container = document.getElementById('summary-stats');
+            
+            try {
+                container.innerHTML = '<div class="loading">Loading stats...</div>';
+                
+                const response = await fetch('/api/leaderboard/stats/summary');
+                const data = await response.json();
+                
+                if (data.error) {
+                    container.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <h3>Total Players</h3>
+                            <div class="value">${data.total_players}</div>
+                            <div class="subtitle">Registered</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Active Players</h3>
+                            <div class="value">${data.active_players}</div>
+                            <div class="subtitle">With games played</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Top Player</h3>
+                            <div class="value">${data.top_player ? data.top_player.name : 'None'}</div>
+                            <div class="subtitle">${data.top_player ? `${data.top_player.wins} wins (${data.top_player.win_rate}%)` : 'No games yet'}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h3>Most Active</h3>
+                            <div class="value">${data.most_active ? data.most_active.name : 'None'}</div>
+                            <div class="subtitle">${data.most_active ? `${data.most_active.total_games} games (${data.most_active.win_rate}%)` : 'No games yet'}</div>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading summary stats:', error);
+                container.innerHTML = '<div class="error">Error loading stats. Please try again.</div>';
+            }
+        }
+
+        async function loadAchievements() {
+            const container = document.getElementById('achievements-list');
+            
+            try {
+                container.innerHTML = '<div class="loading">Loading achievements...</div>';
+                
+                const response = await fetch('/api/achievements?limit=30');
+                const data = await response.json();
+                
+                if (data.error) {
+                    container.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No achievements earned yet. Play some games to unlock achievements!</p>';
+                    return;
+                }
+                
+                let html = '';
+                data.forEach(achievement => {
+                    const earnedDate = new Date(achievement.earned_at).toLocaleDateString();
+                    html += `
+                        <div class="achievement-card">
+                            <div class="achievement-icon">${achievement.icon}</div>
+                            <div class="achievement-info">
+                                <div class="achievement-title">${achievement.title}</div>
+                                <div class="achievement-description">${achievement.description}</div>
+                                <div class="achievement-meta">
+                                    Earned by <span class="achievement-player">${achievement.player_name}</span> on ${earnedDate}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading achievements:', error);
+                container.innerHTML = '<div class="error">Error loading achievements. Please try again.</div>';
+            }
+        }
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLeaderboard('wins');
+        });
+    </script>
+</body>
+</html>
