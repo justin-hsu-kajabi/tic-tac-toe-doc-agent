@@ -2,7 +2,11 @@
 
 ## Overview
 
+<<<<<<< HEAD
 This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, the API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
+=======
+This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, a comprehensive game statistics and analytics system has been added to track various game metrics.
+>>>>>>> origin/main
 
 ## Base URL
 
@@ -244,6 +248,7 @@ The real-time communication between players is handled using WebSocket connectio
 For more information on the WebSocket server implementation, please refer to the `app/websocket_server.rb` file.
 
 ## Game Statistics and Analytics
+<<<<<<< HEAD
 
 The Tic Tac Toe API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
 
@@ -308,23 +313,153 @@ The statistics provide insights into overall game performance, player behavior, 
 ## Code Changes
 
 The following code changes were made to implement the real-time multiplayer system and the game statistics and analytics features:
+=======
 
-1. **Add Room Management System**: A new `Room` model was introduced to handle room creation, player joining, and game coordination. The `Room` model has a one-to-many relationship with `Game` and `Player` models.
+The Tic Tac Toe API now includes a comprehensive game statistics and analytics system to track various game metrics.
+>>>>>>> origin/main
 
-2. **Implement Player Management**: The `Player` model was updated to include the concept of player symbols (either "X" or "O") and session IDs for real-time communication. Players can now be associated with a specific room.
+### Statistics Endpoints
 
-3. **Modify Game Logic**: The `Game` model was updated to handle validation for player turns in multiplayer games. The `make_move` method now checks if the current player is allowed to make a move based on the game state and the player's session ID.
+The following API endpoints are available for accessing game statistics:
 
-4. **Add WebSocket Server**: A new `WebSocketServer` class was introduced to manage real-time communication between players using WebSocket connections. This server handles player connections, message handling, and game state updates.
+#### GET /api/statistics
 
-5. **Implement Game Statistics**: A new `GameStatistic` model was added to track and aggregate daily game metrics, including game duration, move count, winner, and game type. The `Game` model was updated to automatically update the corresponding `GameStatistic` records.
+Retrieve the daily game statistics for the current date.
 
-6. **Update Database Schema**: New database migrations were added to create the `rooms`, `players`, `game_statistics`, and the `room_id` column in the `games` table to support the multiplayer and statistics functionality.
+**Response:**
+```json
+{
+  "total_games": 25,
+  "total_wins": 14,
+  "total_draws": 5,
+  "total_losses": 6,
+  "multiplayer_games": 12,
+  "solo_games": 13,
+  "average_game_duration": 3.25,
+  "fastest_win_moves": 4,
+  "longest_game_moves": 9,
+  "stat_date": "2023-04-15"
+}
+```
 
-7. **Create Multiplayer Documentation**: A new documentation file, `docs/MULTIPLAYER.md`, was added to explain the multiplayer system's architecture, data models, and communication flow.
+#### GET /api/statistics/summary
 
-8. **Add Statistics Documentation**: A new documentation file, `docs/STATISTICS.md`, was created to provide an overview of the game statistics and analytics features, including the available metrics and their use cases.
+Retrieve the aggregated game statistics for a given period (default is 30 days).
 
-9. **Develop Statistics UI**: A new HTML file, `public/statistics.html`, was created to provide a user interface for visualizing the game statistics data, including charts and summary information.
+**Parameters:**
+- `period` (optional, integer) - Number of days to include in the statistics
 
-The updated API documentation now covers the new multiplayer system, the game statistics and analytics features, and the corresponding code changes.
+**Response:**
+```json
+{
+  "total_games": 1000,
+  "total_wins": 600,
+  "total_draws": 200,
+  "total_losses": 200,
+  "multiplayer_games": 400,
+  "solo_games": 600,
+  "average_game_duration": 4.75,
+  "fastest_win_moves": 3,
+  "longest_game_moves": 15
+}
+```
+
+#### GET /api/statistics/weekly
+
+Retrieve the weekly game statistics summary.
+
+**Response:**
+```json
+[
+  {
+    "week_start": "2023-04-24",
+    "week_end": "2023-04-30",
+    "total_games": 150,
+    "total_wins": 90,
+    "total_draws": 30,
+    "total_losses": 30,
+    "multiplayer_games": 60,
+    "solo_games": 90,
+    "average_game_duration": 5.1,
+    "fastest_win_moves": 3,
+    "longest_game_moves": 12
+  },
+  {
+    "week_start": "2023-04-17",
+    "week_end": "2023-04-23",
+    "total_games": 180,
+    "total_wins": 110,
+    "total_draws": 35,
+    "total_losses": 35,
+    "multiplayer_games": 70,
+    "solo_games": 110,
+    "average_game_duration": 4.9,
+    "fastest_win_moves": 4,
+    "longest_game_moves": 14
+  },
+  // Additional weekly summaries
+]
+```
+
+#### GET /api/statistics/games
+
+Retrieve a list of the most recent completed games.
+
+**Parameters:**
+- `limit` (optional, integer) - Maximum number of games to return (default is 10, maximum is 100)
+
+**Response:**
+```json
+[
+  {
+    "id": 123,
+    "status": "X_wins",
+    "room": {
+      "code": "ABC123",
+      "players": [
+        {
+          "name": "Player 1",
+          "symbol": "X"
+        },
+        {
+          "name": "Player 2",
+          "symbol": "O"
+        }
+      ]
+    }
+  },
+  {
+    "id": 124,
+    "status": "draw",
+    "room": {
+      "code": "DEF456",
+      "players": [
+        {
+          "name": "Player 3",
+          "symbol": "X"
+        },
+        {
+          "name": "Player 4",
+          "symbol": "O"
+        }
+      ]
+    }
+  },
+  // Additional recent games
+]
+```
+
+### Statistics Dashboard
+
+The game statistics and analytics data can be accessed through a web-based dashboard, which provides a user-friendly interface for visualizing and exploring the game metrics.
+
+The dashboard is available at the `/statistics` route and includes the following sections:
+
+- **Daily Statistics**: Displays the current day's game statistics, including total games, wins, losses, draws, game duration, and move efficiency.
+- **Summary Analytics**: Shows aggregated statistics for a customizable time period, allowing users to analyze trends and performance over time.
+- **Weekly Snapshot**: Provides a weekly summary of game statistics, making it easy to identify patterns and improvements.
+- **Recent Games**: Lists the most recent completed games, including the game status, room details, and player information.
+
+The dashboard utilizes various charts and graphs to present the data in an intuitive and visually appealing manner, enabling players and administrators to gain insights into the game's performance and player behavior.
+
+For more information on the game statistics system, please refer to the `docs/STATISTICS.md` file.

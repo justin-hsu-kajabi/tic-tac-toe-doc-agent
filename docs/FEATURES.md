@@ -122,8 +122,6 @@ The Game Statistics system provides comprehensive analytics and tracking for tic
 
 - **Success Rates**: Detailed win percentages and trends.
 - **Speed Metrics**: Track improvement in game completion speed.
-- **Engagement Insights**: Monitor player activity and retention.
-
 ### Usage
 
 #### Accessing the Statistics Dashboard
@@ -144,6 +142,16 @@ GET /api/statistics/summary
 ```
 Returns a summary of game statistics for the last 30 days.
 
+```
+GET /api/statistics/weekly
+```
+Returns weekly summary statistics.
+
+```
+GET /api/statistics/games
+```
+Returns recent completed games.
+
 Example usage:
 
 ```javascript
@@ -153,15 +161,31 @@ fetch('/api/statistics')
   .then(data => {
     console.log('Daily Statistics:', data);
   })
-  .catch(error => console.error('Error fetching statistics:', error));
+  .catch(error => console.error('Error fetching daily statistics:', error));
 
 // Fetch 30-day summary
-fetch('/api/statistics/summary')
+fetch('/api/statistics/summary?period=30')
   .then(response => response.json())
   .then(data => {
     console.log('Statistics Summary:', data);
   })
   .catch(error => console.error('Error fetching statistics summary:', error));
+
+// Fetch weekly summary statistics
+fetch('/api/statistics/weekly')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Weekly Statistics:', data);
+  })
+  .catch(error => console.error('Error fetching weekly statistics:', error));
+
+// Fetch the 10 most recent games
+fetch('/api/statistics/games?limit=10')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Recent Games:', data);
+  })
+  .catch(error => console.error('Error fetching recent games:', error));
 ```
 
 ## Documentation Updates
