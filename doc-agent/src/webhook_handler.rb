@@ -81,8 +81,70 @@ class WebhookHandler
   def self.create_combined_doc_update_pr(repo_name, doc_updates, original_pr)
     client = Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
     
-    branch_name = "doc-update-pr-#{original_pr['number']}-#{Time.now.to_i}"
     base_branch = original_pr['base']['ref']
+    
+    # Check if there's already an existing doc update PR for this original PR
+    existing_pr = find_existing_doc_update_pr(client, repo_name, original_pr['number'])
+    
+    if existing_pr
+      puts "Found existing doc update PR ##{existing_pr[:number]}. Updating it..."
+      update_existing_doc_pr(client, repo_name, existing_pr, doc_updates, original_pr)
+    else
+      puts "No existing doc update PR found. Creating new one..."
+      create_new_doc_pr(client, repo_name, doc_updates, original_pr, base_branch)
+    end
+  end
+  
+  def self.find_existing_doc_update_pr(client, repo_name, original_pr_number)
+    # Search for open PRs with the doc update title pattern for this original PR
+    open_prs = client.pull_requests(repo_name, state: 'open')
+    
+    open_prs.find do |pr|
+      pr[:title].start_with?('[DOC_UPDATE]') && 
+      pr[:body]&.include?("PR ##{original_pr_number}:")
+    end
+  end
+  
+  def self.update_existing_doc_pr(client, repo_name, existing_pr, doc_updates, original_pr)
+    branch_name = existing_pr[:head][:ref]
+    
+    # Update all documentation files in the existing branch
+    doc_updates.each do |doc_file, content|
+      puts "Updating #{doc_file} in existing PR..."
+      begin
+        existing_file = client.contents(repo_name, path: doc_file, ref: branch_name)
+        client.update_contents(
+          repo_name,
+          doc_file,
+          "Update #{doc_file} for PR ##{original_pr['number']} (revised)",
+          existing_file[:sha],
+          content,
+          branch: branch_name
+        )
+      rescue Octokit::NotFound
+        client.create_contents(
+          repo_name,
+          doc_file,
+          "Add #{doc_file} for PR ##{original_pr['number']} (revised)",
+          content,
+          branch: branch_name
+        )
+      end
+    end
+    
+    # Update the PR description to reflect the latest changes
+    client.update_pull_request(
+      repo_name,
+      existing_pr[:number],
+      title: "[DOC_UPDATE] #{original_pr['title']}",
+      body: generate_combined_pr_body(original_pr, doc_updates.keys, true)
+    )
+    
+    puts "Updated existing doc PR ##{existing_pr[:number]}"
+  end
+  
+  def self.create_new_doc_pr(client, repo_name, doc_updates, original_pr, base_branch)
+    branch_name = "doc-update-pr-#{original_pr['number']}-#{Time.now.to_i}"
     
     # Create new branch
     base_sha = client.ref(repo_name, "heads/#{base_branch}")[:object][:sha]
@@ -113,20 +175,23 @@ class WebhookHandler
     end
     
     # Create single PR with all updates
-    client.create_pull_request(
+    new_pr = client.create_pull_request(
       repo_name,
       base_branch,
       branch_name,
       "[DOC_UPDATE] #{original_pr['title']}",
       generate_combined_pr_body(original_pr, doc_updates.keys)
     )
+    
+    puts "Created new doc PR ##{new_pr[:number]}"
   end
 
-  def self.generate_combined_pr_body(original_pr, doc_files)
+  def self.generate_combined_pr_body(original_pr, doc_files, is_revision = false)
     files_list = doc_files.map { |file| "- `#{file}`" }.join("\n")
+    revision_text = is_revision ? " (Revised)" : ""
     
     <<~BODY
-      ## 🤖 Automated Documentation Update
+      ## 🤖 Automated Documentation Update#{revision_text}
       
       This PR updates documentation based on changes in PR ##{original_pr['number']}: "#{original_pr['title']}"
       
@@ -136,7 +201,7 @@ class WebhookHandler
       ### Changes Made
       - Updated documentation to reflect new functionality and API changes
       - Generated using AI analysis of code changes from the original PR
-      - Ensures documentation stays current with latest development
+      - Ensures documentation stays current with latest development#{is_revision ? "\n      - **Revised:** Documentation updated based on latest changes to the original PR" : ""}
       
       ### Related PR
       - #{original_pr['html_url']}
