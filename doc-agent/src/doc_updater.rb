@@ -52,24 +52,20 @@ class DocUpdater
   private
 
   def call_anthropic_api(prompt)
-    require 'anthropic'
+    require 'ruby-anthropic'
     
-    # Configure the gem properly
-    Anthropic.configure do |config|
-      config.access_token = @anthropic_key
-    end
+    # Initialize client with access token directly - no global configuration needed
+    client = Anthropic::Client.new(access_token: @anthropic_key)
     
-    client = Anthropic::Client.new
-    
-    # Use the correct API format for ruby-anthropic gem
+    # Use current model and proper parameters format
     response = client.messages(
       parameters: {
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-3-haiku-20240307',
         max_tokens: 4000,
         messages: [
           {
-            "role": "user",
-            "content": prompt
+            role: "user",
+            content: prompt
           }
         ]
       }
