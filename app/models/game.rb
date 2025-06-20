@@ -16,15 +16,25 @@ class Game < ActiveRecord::Base
     end
 
     self.board[position] = current_player
-    self.move_count = (move_count || 0) + 1
+    
+    # Only track move count if column exists
+    if respond_to?(:move_count=)
+      self.move_count = (move_count || 0) + 1
+    end
     
     if winner
       self.status = "#{winner}_wins"
-      self.winner_player = winner
-      self.finished_at = Time.current
+      if respond_to?(:winner_player=)
+        self.winner_player = winner
+      end
+      if respond_to?(:finished_at=)
+        self.finished_at = Time.current
+      end
     elsif board.all? { |cell| !cell.nil? }
       self.status = 'draw'
-      self.finished_at = Time.current
+      if respond_to?(:finished_at=)
+        self.finished_at = Time.current
+      end
     else
       self.current_player = current_player == 'X' ? 'O' : 'X'
     end
@@ -51,6 +61,7 @@ class Game < ActiveRecord::Base
   end
   
   def duration_in_minutes
+    return 0 unless respond_to?(:finished_at) && respond_to?(:started_at)
     return 0 unless finished_at && started_at
     ((finished_at - started_at) / 1.minute).round(2)
   end
@@ -62,12 +73,24 @@ class Game < ActiveRecord::Base
   private
   
   def set_game_start_time
-    self.started_at = Time.current
-    self.game_type = room ? 'multiplayer' : 'solo'
+    # Only set if the column exists (for backward compatibility)
+    if respond_to?(:started_at=)
+      self.started_at = Time.current
+    end
+    
+    if respond_to?(:game_type=)
+      self.game_type = room ? 'multiplayer' : 'solo'
+    end
   end
   
   def update_statistics
+    # Only update statistics if we have the necessary columns
+    return unless respond_to?(:finished_at) && respond_to?(:finished_at_changed?)
     return unless finished_at_changed? && finished_at.present?
-    GameStatistic.update_for_game(self)
+    
+    # Only call if GameStatistic class exists
+    if defined?(GameStatistic)
+      GameStatistic.update_for_game(self)
+    end
   end
 end
