@@ -52,7 +52,7 @@ class DocUpdater
   private
 
   def call_anthropic_api(prompt)
-    require 'ruby-anthropic'
+    require 'anthropic'
     
     # Initialize client with access token directly - no global configuration needed
     client = Anthropic::Client.new(access_token: @anthropic_key)
