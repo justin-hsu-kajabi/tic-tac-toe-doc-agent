@@ -122,6 +122,7 @@ The Game Statistics system provides comprehensive analytics and tracking for tic
 
 - **Success Rates**: Detailed win percentages and trends.
 - **Speed Metrics**: Track improvement in game completion speed.
+
 ### Usage
 
 #### Accessing the Statistics Dashboard
@@ -187,6 +188,58 @@ fetch('/api/statistics/games?limit=10')
   })
   .catch(error => console.error('Error fetching recent games:', error));
 ```
+
+## Comprehensive Leaderboard System for Competitive Gameplay
+
+The application now includes a comprehensive leaderboard system to track player performance and rankings for competitive gameplay.
+
+### Leaderboard Features
+
+- **Player Ranking**: Players are ranked based on their total wins, win rate, and total games played.
+- **Streak Tracking**: The system tracks each player's current and best win streaks.
+- **Fastest Wins**: The leaderboard includes information on the fastest wins (fewest moves).
+- **Last Game Played**: The date of each player's last game is recorded.
+
+### Leaderboard API
+
+The application provides the following API endpoints to access the leaderboard:
+
+```
+GET /api/leaderboard
+```
+Returns the top players based on a specified metric (wins, win rate, or total games).
+
+Example usage:
+
+```javascript
+// Fetch the top 10 players by wins
+fetch('/api/leaderboard?type=wins&limit=10')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Top Players by Wins:', data);
+  })
+  .catch(error => console.error('Error fetching leaderboard:', error));
+
+// Fetch the top 10 players by win rate
+fetch('/api/leaderboard?type=win_rate&limit=10')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Top Players by Win Rate:', data);
+  })
+  .catch(error => console.error('Error fetching leaderboard:', error));
+
+// Fetch the top 10 players by total games played
+fetch('/api/leaderboard?type=games&limit=10')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Top Players by Total Games:', data);
+  })
+  .catch(error => console.error('Error fetching leaderboard:', error));
+```
+
+### Leaderboard Integration
+
+The leaderboard system is integrated with the game engine, automatically updating player statistics after each completed game. This ensures that the leaderboard reflects the most up-to-date player performance.
 
 ## Documentation Updates
 
