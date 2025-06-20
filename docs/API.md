@@ -2,11 +2,7 @@
 
 ## Overview
 
-<<<<<<< HEAD
 This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, the API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
-=======
-This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, a comprehensive game statistics and analytics system has been added to track various game metrics.
->>>>>>> origin/main
 
 ## Base URL
 
@@ -248,7 +244,6 @@ The real-time communication between players is handled using WebSocket connectio
 For more information on the WebSocket server implementation, please refer to the `app/websocket_server.rb` file.
 
 ## Game Statistics and Analytics
-<<<<<<< HEAD
 
 The Tic Tac Toe API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
 
@@ -296,68 +291,12 @@ Retrieve the aggregated game statistics for a given period (default is 30 days).
 **Response:**
 ```json
 {
-  "total_games": 240,
-  "total_wins": 130,
-  "total_draws": 50,
-  "total_losses": 60,
-  "multiplayer_games_percentage": 55.0,
-  "solo_games_percentage": 45.0,
-  "average_game_duration": 3.75,
-  "fastest_win_moves": 3,
-  "longest_game_moves": 12
-}
-```
-
-The statistics provide insights into overall game performance, player behavior, and efficiency. This data can be used to analyze trends, identify areas for improvement, and track the progress of individual players or the community as a whole.
-
-## Code Changes
-
-The following code changes were made to implement the real-time multiplayer system and the game statistics and analytics features:
-=======
-
-The Tic Tac Toe API now includes a comprehensive game statistics and analytics system to track various game metrics.
->>>>>>> origin/main
-
-### Statistics Endpoints
-
-The following API endpoints are available for accessing game statistics:
-
-#### GET /api/statistics
-
-Retrieve the daily game statistics for the current date.
-
-**Response:**
-```json
-{
-  "total_games": 25,
-  "total_wins": 14,
-  "total_draws": 5,
-  "total_losses": 6,
-  "multiplayer_games": 12,
-  "solo_games": 13,
-  "average_game_duration": 3.25,
-  "fastest_win_moves": 4,
-  "longest_game_moves": 9,
-  "stat_date": "2023-04-15"
-}
-```
-
-#### GET /api/statistics/summary
-
-Retrieve the aggregated game statistics for a given period (default is 30 days).
-
-**Parameters:**
-- `period` (optional, integer) - Number of days to include in the statistics
-
-**Response:**
-```json
-{
   "total_games": 1000,
   "total_wins": 600,
   "total_draws": 200,
   "total_losses": 200,
-  "multiplayer_games": 400,
-  "solo_games": 600,
+  "multiplayer_games_percentage": 40.0,
+  "solo_games_percentage": 60.0,
   "average_game_duration": 4.75,
   "fastest_win_moves": 3,
   "longest_game_moves": 15
@@ -463,3 +402,78 @@ The dashboard is available at the `/statistics` route and includes the following
 The dashboard utilizes various charts and graphs to present the data in an intuitive and visually appealing manner, enabling players and administrators to gain insights into the game's performance and player behavior.
 
 For more information on the game statistics system, please refer to the `docs/STATISTICS.md` file.
+
+## Leaderboard System
+
+The Tic Tac Toe API includes a comprehensive leaderboard system to track player performance and rankings.
+
+### Leaderboard API Endpoints
+
+#### GET /api/leaderboard
+
+Retrieve the leaderboard for a specific metric (default is "wins").
+
+**Parameters:**
+- `type` (optional, string) - The leaderboard type, can be "wins", "total_games", or "win_rate"
+- `limit` (optional, integer) - The maximum number of entries to return (default is 10, maximum is 50)
+
+**Response:**
+```json
+[
+  {
+    "player_name": "Charlie",
+    "wins": 20,
+    "losses": 3,
+    "draws": 1,
+    "total_games": 24,
+    "win_rate": 83.33
+  },
+  {
+    "player_name": "Eve",
+    "wins": 25,
+    "losses": 10,
+    "draws": 5,
+    "total_games": 40,
+    "win_rate": 62.50
+  },
+  {
+    "player_name": "Alice",
+    "wins": 15,
+    "losses": 5,
+    "draws": 2,
+    "total_games": 22,
+    "win_rate": 68.18
+  },
+  // Additional leaderboard entries
+]
+```
+
+### Leaderboard Metrics
+
+The leaderboard system tracks the following metrics for each player:
+
+- **Wins**: The total number of games won by the player.
+- **Losses**: The total number of games lost by the player.
+- **Draws**: The total number of games that ended in a draw for the player.
+- **Total Games**: The total number of games played by the player.
+- **Win Rate**: The percentage of games won by the player.
+- **Current Win Streak**: The player's current consecutive win streak.
+- **Best Win Streak**: The player's highest consecutive win streak.
+- **Fastest Win Moves**: The minimum number of moves required for the player to win a game.
+- **Last Game At**: The timestamp of the player's most recent game.
+
+### Achievements System
+
+The Tic Tac Toe API also includes an achievements system, which awards players for reaching certain milestones or accomplishments.
+
+The following achievements are currently available:
+
+- **First Victory**: Win your first game.
+- **Streak Master**: Win 5 games in a row.
+- **Speed Demon**: Win a game in 3 moves or less.
+- **Undefeated Champion**: Win 10 games without a loss.
+- **Game Master**: Achieve a specific win-loss-draw ratio.
+
+When a player earns an achievement, it is recorded in the database, and the player can view their unlocked achievements in the user interface.
+
+For more information on the leaderboard and achievements systems, please refer to the `docs/LEADERBOARD.md` file.

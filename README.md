@@ -10,6 +10,8 @@ A full-stack tic-tac-toe game built with Ruby/Sinatra and vanilla JavaScript, fe
 - 🔄 Real-time game state management
 - 📊 Game persistence with SQLite
 - 📈 Comprehensive game statistics and analytics
+- 🏆 Competitive leaderboard system
+- 🏅 Achievements unlocking system
 
 ### Documentation Agent Features
 - 🤖 AI-powered documentation updates
@@ -88,34 +90,104 @@ The Game Statistics system provides comprehensive analytics and tracking for tic
 
 See [STATISTICS.md](docs/STATISTICS.md) for detailed documentation on the game statistics features.
 
-## Project Structure
+## Competitive Leaderboard System
+
+The Leaderboard system enables players to compete against each other in a ranking-based system. Players' performance is tracked, and their wins, losses, and other metrics are used to calculate their position on the leaderboard. The leaderboard is displayed on a dedicated page, allowing players to see their standings and compare their performance to others.
+
+### Leaderboard Features
+
+- 📊 Displays overall player rankings based on wins, losses, and total games played
+- 🔥 Tracks current and best win streaks for each player
+- ⚡ Records the fastest win (in number of moves) for each player
+- 🗓️ Shows the date of each player's last game
+
+### Leaderboard API
+
+You can access the leaderboard data through the following API endpoint:
 
 ```
-tic-tac-toe-app/
-├── app/
-│   ├── models/
-│   │   └── game.rb          # Game logic and state
-│   │   └── room.rb          # Room management
-│   │   └── player.rb        # Player management
-│   │   └── game_statistic.rb # Game statistics
-│   └── application.rb       # Main Sinatra application
-│   └── websocket_server.rb  # WebSocket server
-├── doc-agent/
-│   └── src/
-│       ├── webhook_handler.rb  # GitHub webhook processing
-│       ├── pr_analyzer.rb      # PR analysis logic
-│       ├── doc_finder.rb       # Documentation file discovery
-│       └── doc_updater.rb      # AI documentation generation
-├── docs/
-│   └── API.md              # API documentation
-│   └── MULTIPLAYER.md      # Multiplayer system documentation
-│   └── STATISTICS.md       # Game statistics documentation
-├── public/
-│   └── index.html          # Frontend interface
-│   └── multiplayer.html    # Multiplayer frontend
-│   └── statistics.html     # Statistics dashboard
-└── db/
-    └── migrate/            # Database migrations
+GET /api/leaderboard?type=wins&limit=10
+```
+
+The `type` parameter specifies the leaderboard type (default is 'wins'), and the `limit` parameter sets the maximum number of results to return (default is 10, maximum is 50).
+
+The response will be a JSON object with the following structure:
+
+```json
+{
+  "leaderboard": [
+    {
+      "player_name": "Charlie",
+      "total_games": 24,
+      "wins": 20,
+      "losses": 3,
+      "draws": 1,
+      "current_win_streak": 7,
+      "best_win_streak": 12,
+      "fastest_win_moves": 3,
+      "last_game_at": "2023-04-15T18:30:00Z"
+    },
+    {
+      "player_name": "Eve",
+      "total_games": 40,
+      "wins": 25,
+      "losses": 10,
+      "draws": 5,
+      "current_win_streak": 3,
+      "best_win_streak": 8,
+      "fastest_win_moves": 4,
+      "last_game_at": "2023-04-14T20:45:00Z"
+    },
+    // Additional leaderboard entries...
+  ]
+}
+```
+
+## Achievements System
+
+The Achievements system rewards players for accomplishing specific milestones or performing well in the game. When a player meets the criteria for an achievement, it is automatically unlocked and added to their profile.
+
+### Available Achievements
+
+- **First Victory**: Win your first game
+- **Streak Master**: Win 5 games in a row
+- **Speed Demon**: Win a game in 3 moves
+- **Undefeated Champion**: Win 10 games without a loss
+- **Comeback King**: Win a game after being down 0-2
+- **Game Master**: Win 100 games
+
+### Achievements API
+
+You can retrieve a player's unlocked achievements through the following API endpoint:
+
+```
+GET /api/achievements?player_name=Alice
+```
+
+The response will be a JSON object with the following structure:
+
+```json
+{
+  "achievements": [
+    {
+      "player_name": "Alice",
+      "achievement_type": "first_win",
+      "title": "First Victory",
+      "description": "Win your first game",
+      "icon": "🎉",
+      "earned_at": "2023-04-01T12:34:56Z"
+    },
+    {
+      "player_name": "Alice",
+      "achievement_type": "speed_demon",
+      "title": "Speed Demon",
+      "description": "Win a game in 3 moves",
+      "icon": "⚡",
+      "earned_at": "2023-04-10T15:20:00Z"
+    },
+    // Additional achievements...
+  ]
+}
 ```
 
 ## Development
@@ -133,6 +205,7 @@ The `Game` model handles:
 - Game state transitions
 - Board serialization
 - Game statistics tracking
+- Leaderboard and achievement updates
 
 ### Documentation Agent Architecture
 
