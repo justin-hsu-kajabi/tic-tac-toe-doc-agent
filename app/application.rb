@@ -22,6 +22,13 @@ rescue LoadError
   # Leaderboard not available, leaderboard features will be disabled
 end
 
+# Load Achievement model if it exists (for backward compatibility)
+begin
+  require_relative 'models/achievement'
+rescue LoadError
+  # Achievement not available, achievement features will be disabled
+end
+
 class Application < Sinatra::Base
   configure do
     db_config = {
@@ -296,6 +303,70 @@ class Application < Sinatra::Base
       })
     else
       json({ error: 'Leaderboard not available - please run database migrations' })
+    end
+  end
+
+  # Achievement API Routes (only if Achievement is available)
+  get '/api/achievements' do
+    if defined?(Achievement)
+      limit = [params[:limit]&.to_i || 20, 100].min
+      
+      if params[:player_name]
+        achievements = Achievement.for_player(params[:player_name])
+      else
+        achievements = Achievement.recent_achievements(limit)
+      end
+      
+      json achievements.map { |achievement|
+        {
+          id: achievement.id,
+          player_name: achievement.player_name,
+          achievement_type: achievement.achievement_type,
+          title: achievement.title,
+          description: achievement.description,
+          icon: achievement.icon,
+          earned_at: achievement.earned_at
+        }
+      }
+    else
+      json({ error: 'Achievements not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/achievements/:player_name' do
+    if defined?(Achievement)
+      achievements = Achievement.for_player(params[:player_name])
+      
+      json({
+        player_name: params[:player_name],
+        total_achievements: achievements.count,
+        achievements: achievements.map { |achievement|
+          {
+            achievement_type: achievement.achievement_type,
+            title: achievement.title,
+            description: achievement.description,
+            icon: achievement.icon,
+            earned_at: achievement.earned_at
+          }
+        }
+      })
+    else
+      json({ error: 'Achievements not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/achievements/definitions/all' do
+    if defined?(Achievement)
+      json Achievement::ACHIEVEMENT_DEFINITIONS.map { |type, definition|
+        {
+          achievement_type: type,
+          title: definition[:title],
+          description: definition[:description],
+          icon: definition[:icon]
+        }
+      }
+    else
+      json({ error: 'Achievements not available - please run database migrations' })
     end
   end
 

@@ -219,6 +219,56 @@
             color: #0066cc;
         }
 
+        .achievement-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #ffd700;
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .achievement-icon {
+            font-size: 3em;
+            margin-right: 20px;
+            text-align: center;
+            width: 80px;
+        }
+
+        .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 5px 0;
+        }
+
+        .achievement-description {
+            color: #666;
+            margin: 0 0 10px 0;
+        }
+
+        .achievement-meta {
+            font-size: 0.9em;
+            color: #999;
+        }
+
+        .achievement-player {
+            font-weight: 600;
+            color: #007bff;
+        }
+
         @media (max-width: 768px) {
             .leaderboard-table {
                 font-size: 14px;
@@ -250,6 +300,7 @@
             <button class="nav-tab active" onclick="showTab('wins')">Top Winners</button>
             <button class="nav-tab" onclick="showTab('winrate')">Best Win Rate</button>
             <button class="nav-tab" onclick="showTab('games')">Most Active</button>
+            <button class="nav-tab" onclick="showTab('achievements')">🏆 Achievements</button>
             <button class="nav-tab" onclick="showTab('summary')">Overview</button>
         </div>
 
@@ -267,6 +318,11 @@
             <div id="games-tab" class="tab-content">
                 <h2>Most Active Players</h2>
                 <div id="games-leaderboard" class="loading">Loading leaderboard...</div>
+            </div>
+
+            <div id="achievements-tab" class="tab-content">
+                <h2>Recent Achievements</h2>
+                <div id="achievements-list" class="loading">Loading achievements...</div>
             </div>
 
             <div id="summary-tab" class="tab-content">
@@ -293,6 +349,8 @@
             
             if (tabName === 'summary') {
                 loadSummaryStats();
+            } else if (tabName === 'achievements') {
+                loadAchievements();
             } else {
                 loadLeaderboard(tabName === 'winrate' ? 'win_rate' : tabName);
             }
@@ -435,6 +493,50 @@
             } catch (error) {
                 console.error('Error loading summary stats:', error);
                 container.innerHTML = '<div class="error">Error loading stats. Please try again.</div>';
+            }
+        }
+
+        async function loadAchievements() {
+            const container = document.getElementById('achievements-list');
+            
+            try {
+                container.innerHTML = '<div class="loading">Loading achievements...</div>';
+                
+                const response = await fetch('/api/achievements?limit=30');
+                const data = await response.json();
+                
+                if (data.error) {
+                    container.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p>No achievements earned yet. Play some games to unlock achievements!</p>';
+                    return;
+                }
+                
+                let html = '';
+                data.forEach(achievement => {
+                    const earnedDate = new Date(achievement.earned_at).toLocaleDateString();
+                    html += `
+                        <div class="achievement-card">
+                            <div class="achievement-icon">${achievement.icon}</div>
+                            <div class="achievement-info">
+                                <div class="achievement-title">${achievement.title}</div>
+                                <div class="achievement-description">${achievement.description}</div>
+                                <div class="achievement-meta">
+                                    Earned by <span class="achievement-player">${achievement.player_name}</span> on ${earnedDate}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading achievements:', error);
+                container.innerHTML = '<div class="error">Error loading achievements. Please try again.</div>';
             }
         }
 

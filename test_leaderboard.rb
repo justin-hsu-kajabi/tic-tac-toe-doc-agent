@@ -7,6 +7,7 @@ require_relative 'app/models/game'
 require_relative 'app/models/room'
 require_relative 'app/models/player'
 require_relative 'app/models/leaderboard'
+require_relative 'app/models/achievement'
 require 'active_record'
 
 # Set up database connection
@@ -95,9 +96,57 @@ if charlie
   puts "Last Game: #{charlie.last_game_at&.strftime('%Y-%m-%d %H:%M')}"
 end
 
+# Test achievement system
+puts "\n🏆 TESTING ACHIEVEMENT SYSTEM:"
+puts "-" * 35
+
+# Create some sample achievements
+alice = Leaderboard.find_by(player_name: "Alice")
+if alice
+  # Manually create some achievements for demonstration
+  Achievement.find_or_create_by(
+    player_name: "Alice",
+    achievement_type: "first_win"
+  ) do |achievement|
+    definition = Achievement::ACHIEVEMENT_DEFINITIONS['first_win']
+    achievement.title = definition[:title]
+    achievement.description = definition[:description]
+    achievement.icon = definition[:icon]
+    achievement.earned_at = 5.days.ago
+  end
+
+  Achievement.find_or_create_by(
+    player_name: "Charlie",
+    achievement_type: "speed_demon"
+  ) do |achievement|
+    definition = Achievement::ACHIEVEMENT_DEFINITIONS['speed_demon']
+    achievement.title = definition[:title]
+    achievement.description = definition[:description]
+    achievement.icon = definition[:icon]
+    achievement.earned_at = 2.days.ago
+  end
+end
+
+# Show recent achievements
+puts "Recent achievements:"
+Achievement.recent_achievements(5).each_with_index do |achievement, index|
+  puts "#{index + 1}. #{achievement.icon} #{achievement.player_name} - #{achievement.title}"
+  puts "   #{achievement.description} (#{achievement.earned_at.strftime('%Y-%m-%d')})"
+end
+
+puts "\n📋 AVAILABLE ACHIEVEMENT TYPES:"
+puts "-" * 35
+Achievement::ACHIEVEMENT_DEFINITIONS.each do |type, definition|
+  puts "#{definition[:icon]} #{definition[:title]} - #{definition[:description]}"
+end
+
 puts "\n" + "=" * 40
-puts "🎮 Leaderboard system is working! Visit /leaderboard.html to see the web interface."
+puts "🎮 Enhanced leaderboard system with achievements is working!"
+puts "Visit /leaderboard.html to see the web interface with achievements."
 puts "API endpoints available:"
 puts "  • GET /api/leaderboard"
 puts "  • GET /api/leaderboard/Alice" 
 puts "  • GET /api/leaderboard/stats/summary"
+puts "  • GET /api/achievements"
+puts "  • GET /api/achievements/Alice"
+puts "  • GET /api/achievements/definitions/all"

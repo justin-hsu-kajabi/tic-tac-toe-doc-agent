@@ -44,6 +44,14 @@ class Leaderboard < ActiveRecord::Base
     self.last_game_at = Time.current
 
     save!
+
+    # Check for new achievements if Achievement model is available
+    if defined?(Achievement)
+      new_achievements = Achievement.check_and_award(player_name, self)
+      new_achievements.each do |achievement|
+        puts "🏆 #{player_name} earned: #{achievement.title} - #{achievement.description}"
+      end
+    end
   end
 
   def win_rate
