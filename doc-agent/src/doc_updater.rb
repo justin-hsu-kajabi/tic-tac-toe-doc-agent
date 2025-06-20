@@ -1,41 +1,77 @@
-require 'faraday'
 require 'base64'
 require 'octokit'
-require 'json'
 
 class DocUpdater
   def initialize
-    @api_key = ENV['GEMINI_API_KEY']
-    @base_url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+    @anthropic_key = ENV['ANTHROPIC_API_KEY']
+    @gemini_key = ENV['GEMINI_API_KEY']
   end
 
   def update_documentation(doc_file, changes, pr_summary)
-    return nil unless @api_key
+    unless (@anthropic_key && !@anthropic_key.empty?) || (@gemini_key && !@gemini_key.empty?)
+      puts "Warning: Neither ANTHROPIC_API_KEY nor GEMINI_API_KEY is set - skipping documentation generation"
+      return nil
+    end
     
     # Get existing documentation content if it exists
     existing_content = get_existing_doc_content(doc_file)
+    puts "Updating #{doc_file} - existing content: #{existing_content&.length || 0} chars"
     
-    # Generate prompt for Gemini
+    # Generate prompt
     prompt = build_update_prompt(doc_file, existing_content, changes, pr_summary)
+    puts "Generated prompt: #{prompt.length} chars"
     
-    # Call Gemini API
-    response = call_gemini_api(prompt)
+    # Call appropriate AI API
+    if @anthropic_key && !@anthropic_key.empty?
+      puts "Using Anthropic Claude API..."
+      content = call_anthropic_api(prompt)
+    elsif @gemini_key && !@gemini_key.empty?
+      puts "Using Google Gemini API..."
+      content = call_gemini_api(prompt)
+    end
     
-    if response && response['candidates'] && response['candidates'].first
-      content = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
-      content&.strip&.empty? ? nil : content
+    if content
+      puts "AI generated #{content.length} characters"
+      content
     else
+      puts "No content generated"
       nil
     end
   rescue => e
-    puts "Error updating documentation with Gemini: #{e.message}"
+    puts "Error updating documentation: #{e.message}"
+    puts e.backtrace.first(3).join("\n")
     nil
   end
 
   private
 
+  def call_anthropic_api(prompt)
+    require 'anthropic'
+    client = Anthropic::Client.new(api_key: @anthropic_key)
+    
+    response = client.messages(
+      model: 'claude-3-sonnet-20240229',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    )
+    
+    if response && response.content && response.content.first
+      response.content.first['text']
+    else
+      nil
+    end
+  rescue => e
+    puts "Anthropic API error: #{e.message}"
+    nil
+  end
+
   def call_gemini_api(prompt)
-    conn = Faraday.new(url: @base_url) do |faraday|
+    require 'faraday'
+    require 'json'
+    
+    base_url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+    
+    conn = Faraday.new(url: base_url) do |faraday|
       faraday.request :json
       faraday.response :json
       faraday.adapter Faraday.default_adapter
@@ -54,12 +90,20 @@ class DocUpdater
     }
 
     response = conn.post do |req|
-      req.url "?key=#{@api_key}"
+      req.url "?key=#{@gemini_key}"
       req.headers['Content-Type'] = 'application/json'
       req.body = payload
     end
 
-    response.body
+    if response.body && response.body['candidates'] && response.body['candidates'].first
+      content = response.body.dig('candidates', 0, 'content', 'parts', 0, 'text')
+      content&.strip&.empty? ? nil : content
+    else
+      nil
+    end
+  rescue => e
+    puts "Gemini API error: #{e.message}"
+    nil
   end
 
   def get_existing_doc_content(doc_file)
