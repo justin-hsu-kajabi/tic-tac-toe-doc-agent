@@ -11,7 +11,16 @@ class WebhookHandler
     pr_data = payload['pull_request']
     repo_name = payload['repository']['full_name']
     
-    puts "Processing PR ##{pr_data['number']} in #{repo_name}"
+    # Skip if this is a documentation-only PR created by the doc agent
+    pr_title = pr_data['title'] || ''
+    if pr_title.include?('📚 Update documentation') || 
+       pr_title.include?('doc-update') ||
+       pr_data['user']['login'] == 'github-actions[bot]'
+      puts "Skipping doc agent analysis for documentation-only PR: #{pr_title}"
+      return
+    end
+    
+    puts "Processing PR ##{pr_data['number']} in #{repo_name}: #{pr_title}"
     
     analyzer = PRAnalyzer.new
     doc_finder = DocFinder.new
@@ -107,6 +116,10 @@ class WebhookHandler
       
       ### Related PR
       - #{original_pr['html_url']}
+      
+      ---
+      
+      > **Note:** This is an automated documentation update. The doc agent will **not** process this PR to avoid infinite loops.
       
       🤖 Generated with AI Doc Agent
     BODY
