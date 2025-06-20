@@ -7,6 +7,7 @@ require 'json'
 require_relative 'models/game'
 require_relative 'models/room'
 require_relative 'models/player'
+require_relative 'models/game_statistic'
 
 class Application < Sinatra::Base
   configure do
@@ -132,6 +133,42 @@ class Application < Sinatra::Base
       players: room.players.map { |p| { name: p.name, symbol: p.symbol } },
       current_game: room.current_game&.id
     })
+  end
+
+  # Statistics API Routes
+  get '/api/statistics' do
+    json GameStatistic.today
+  end
+  
+  get '/api/statistics/summary' do
+    period = params[:period] || '30'
+    start_date = period.to_i.days.ago.to_date
+    
+    json GameStatistic.aggregate_stats(start_date)
+  end
+  
+  get '/api/statistics/weekly' do
+    json GameStatistic.weekly_summary
+  end
+  
+  get '/api/statistics/games' do
+    limit = [params[:limit]&.to_i || 10, 100].min
+    games = Game.where.not(status: 'playing')
+                .order(finished_at: :desc)
+                .limit(limit)
+                .includes(:room)
+    
+    json games.map { |game|
+      {
+        id: game.id,
+        status: game.status,
+        winner: game.winner_player,
+        game_type: game.game_type,
+        move_count: game.move_count,
+        duration_minutes: game.duration_in_minutes,
+        finished_at: game.finished_at
+      }
+    }
   end
 
   # Doc agent webhook endpoint
