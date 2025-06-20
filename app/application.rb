@@ -8,6 +8,13 @@ require_relative 'models/game'
 require_relative 'models/room'
 require_relative 'models/player'
 
+# Load GameStatistic model if it exists (for backward compatibility)
+begin
+  require_relative 'models/game_statistic'
+rescue LoadError
+  # GameStatistic not available, statistics features will be disabled
+end
+
 class Application < Sinatra::Base
   configure do
     db_config = {
@@ -132,6 +139,66 @@ class Application < Sinatra::Base
       players: room.players.map { |p| { name: p.name, symbol: p.symbol } },
       current_game: room.current_game&.id
     })
+  end
+
+  # Statistics API Routes (only if GameStatistic is available)
+  get '/api/statistics' do
+    if defined?(GameStatistic)
+      json GameStatistic.today
+    else
+      json({ error: 'Statistics not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/statistics/summary' do
+    if defined?(GameStatistic)
+      period = params[:period] || '30'
+      start_date = period.to_i.days.ago.to_date
+      
+      json GameStatistic.aggregate_stats(start_date)
+    else
+      json({ error: 'Statistics not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/statistics/weekly' do
+    if defined?(GameStatistic)
+      json GameStatistic.weekly_summary
+    else
+      json({ error: 'Statistics not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/statistics/games' do
+    limit = [params[:limit]&.to_i || 10, 100].min
+    
+    # Build query conditionally based on available columns
+    games_query = Game.where.not(status: 'playing').limit(limit)
+    
+    # Only order by finished_at if the column exists
+    if Game.column_names.include?('finished_at')
+      games_query = games_query.order(finished_at: :desc)
+    else
+      games_query = games_query.order(updated_at: :desc)
+    end
+    
+    games = games_query.includes(:room)
+    
+    json games.map { |game|
+      result = {
+        id: game.id,
+        status: game.status
+      }
+      
+      # Add optional fields if they exist
+      result[:winner] = game.winner_player if game.respond_to?(:winner_player)
+      result[:game_type] = game.game_type if game.respond_to?(:game_type)
+      result[:move_count] = game.move_count if game.respond_to?(:move_count)
+      result[:duration_minutes] = game.duration_in_minutes
+      result[:finished_at] = game.finished_at if game.respond_to?(:finished_at)
+      
+      result
+    }
   end
 
   # Doc agent webhook endpoint
