@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.0.6
+        bundler-cache: true
+        
+    - name: Install dependencies
+      run: bundle install
+      
+    - name: Set up database
+      run: |
+        mkdir -p db
+        bundle exec rake db:migrate
+        
+    - name: Run syntax check
+      run: bundle exec ruby -c app/application.rb
+      
+    - name: Test API endpoints
+      run: |
+        # Start server in background
+        bundle exec rackup config.ru -p 4567 &
+        SERVER_PID=$!
+        
+        # Wait for server to start
+        sleep 5
+        
+        # Test endpoints
+        curl -f http://localhost:4567/ || exit 1
+        curl -f -X POST http://localhost:4567/api/games || exit 1
+        
+        # Stop server
+        kill $SERVER_PID
+        
+    - name: Check documentation agent files
+      run: |
+        bundle exec ruby -c doc-agent/src/pr_analyzer.rb
+        bundle exec ruby -c doc-agent/src/doc_finder.rb
+        bundle exec ruby -c doc-agent/src/doc_updater.rb
+        bundle exec ruby -c doc-agent/src/webhook_handler.rb
