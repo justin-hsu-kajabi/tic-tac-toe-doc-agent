@@ -29,6 +29,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.DOC_AGENT_PAT || secrets.GITHUB_TOKEN }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
         # Create a simple script to process the PR
@@ -49,7 +50,7 @@ jobs:
           }
         }
         
-        puts "Processing PR for documentation updates with Claude AI..."
+        puts "Processing PR for documentation updates with AI..."
         WebhookHandler.process_pr(payload)
         puts "Documentation processing complete!"
         EOF
@@ -61,8 +62,8 @@ jobs:
         export GITHUB_PR_URL=${{ github.event.pull_request.html_url }}
         
         # Run the documentation update (only if API key is available)
-        if [ -n "$ANTHROPIC_API_KEY" ]; then
+        if [ -n "$ANTHROPIC_API_KEY" ] || [ -n "$GEMINI_API_KEY" ]; then
           bundle exec ruby process_pr.rb
         else
-          echo "ANTHROPIC_API_KEY not set - skipping documentation generation"
+          echo "Neither ANTHROPIC_API_KEY nor GEMINI_API_KEY is set - skipping documentation generation"
         fi
