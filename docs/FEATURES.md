@@ -101,6 +101,94 @@ fetch('/api/rooms/ABCD/join', {
 .catch(error => console.error('Error joining room:', error));
 ```
 
+## Comprehensive Leaderboard System for Competitive Gameplay
+
+The application now includes a comprehensive leaderboard system that tracks player performance and achievements across the game.
+
+### Leaderboard Features
+
+- **Automatic Updates**: The leaderboard is automatically updated after each game, recording wins, losses, and draws for each player.
+- **Streak Tracking**: The leaderboard keeps track of the current and best win streaks for each player.
+- **Fastest Win Tracking**: The leaderboard records the fastest win (in terms of number of moves) for each player.
+- **Sorting and Filtering**: The leaderboard can be sorted by various metrics, such as total wins, win rate, and total games played. The leaderboard can also be filtered by a specific time period.
+
+### Leaderboard API
+
+The application provides the following API endpoints to access the leaderboard data:
+
+```
+GET /api/leaderboard
+```
+Returns the top players on the leaderboard, sorted by the specified metric (default is total wins).
+
+**Parameters:**
+- `type`: The metric to sort the leaderboard by (e.g., "wins", "win_rate", "total_games")
+- `limit`: The maximum number of results to return (default is 10, maximum is 50)
+
+Example response:
+
+```json
+[
+  {
+    "player_name": "Alice",
+    "wins": 25,
+    "losses": 10,
+    "draws": 5,
+    "total_games": 40,
+    "win_rate": 62.5,
+    "current_win_streak": 3,
+    "best_win_streak": 7,
+    "fastest_win_moves": 3
+  },
+  {
+    "player_name": "Charlie",
+    "wins": 20,
+    "losses": 3,
+    "draws": 1,
+    "total_games": 24,
+    "win_rate": 83.33,
+    "current_win_streak": 10,
+    "best_win_streak": 10,
+    "fastest_win_moves": 4
+  },
+  // ... additional leaderboard entries
+]
+```
+
+### Achievement System
+
+The application also includes an achievement system that rewards players for reaching certain milestones in their gameplay. The following achievements are currently implemented:
+
+- **First Victory**: Awarded for winning the first game.
+- **Streak Master**: Awarded for winning 5 games in a row.
+- **Speed Demon**: Awarded for winning a game in 3 moves or less.
+- **Undefeated Champion**: Awarded for winning 10 games without a loss.
+- **Game Master**: Awarded for reaching a certain threshold of total games played.
+
+Players can view their earned achievements on their profile or the global leaderboard.
+
+### Usage Examples
+
+#### Accessing the Leaderboard
+
+```javascript
+// Fetch the top 10 players sorted by total wins
+fetch('/api/leaderboard?type=wins&limit=10')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Leaderboard:', data);
+  })
+  .catch(error => console.error('Error fetching leaderboard:', error));
+
+// Fetch the top 20 players sorted by win rate
+fetch('/api/leaderboard?type=win_rate&limit=20')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Leaderboard:', data);
+  })
+  .catch(error => console.error('Error fetching leaderboard:', error));
+```
+
 ## Game Statistics and Analytics System
 
 The Game Statistics system provides comprehensive analytics and tracking for tic-tac-toe gameplay. It automatically captures game metrics, aggregates daily statistics, and provides insights through a real-time dashboard.
@@ -188,58 +276,6 @@ fetch('/api/statistics/games?limit=10')
   })
   .catch(error => console.error('Error fetching recent games:', error));
 ```
-
-## Comprehensive Leaderboard System for Competitive Gameplay
-
-The application now includes a comprehensive leaderboard system to track player performance and rankings for competitive gameplay.
-
-### Leaderboard Features
-
-- **Player Ranking**: Players are ranked based on their total wins, win rate, and total games played.
-- **Streak Tracking**: The system tracks each player's current and best win streaks.
-- **Fastest Wins**: The leaderboard includes information on the fastest wins (fewest moves).
-- **Last Game Played**: The date of each player's last game is recorded.
-
-### Leaderboard API
-
-The application provides the following API endpoints to access the leaderboard:
-
-```
-GET /api/leaderboard
-```
-Returns the top players based on a specified metric (wins, win rate, or total games).
-
-Example usage:
-
-```javascript
-// Fetch the top 10 players by wins
-fetch('/api/leaderboard?type=wins&limit=10')
-  .then(response => response.json())
-  .then(data => {
-    console.log('Top Players by Wins:', data);
-  })
-  .catch(error => console.error('Error fetching leaderboard:', error));
-
-// Fetch the top 10 players by win rate
-fetch('/api/leaderboard?type=win_rate&limit=10')
-  .then(response => response.json())
-  .then(data => {
-    console.log('Top Players by Win Rate:', data);
-  })
-  .catch(error => console.error('Error fetching leaderboard:', error));
-
-// Fetch the top 10 players by total games played
-fetch('/api/leaderboard?type=games&limit=10')
-  .then(response => response.json())
-  .then(data => {
-    console.log('Top Players by Total Games:', data);
-  })
-  .catch(error => console.error('Error fetching leaderboard:', error));
-```
-
-### Leaderboard Integration
-
-The leaderboard system is integrated with the game engine, automatically updating player statistics after each completed game. This ensures that the leaderboard reflects the most up-to-date player performance.
 
 ## Documentation Updates
 
