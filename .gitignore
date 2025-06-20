@@ -1,0 +1,37 @@
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database files
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Ruby/Bundle files
+.bundle/
+vendor/bundle/
+
+# Logs
+*.log
+log/
+
+# Temporary files
+tmp/
+.tmp/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Test files
+test_server.rb
+
+# Node modules (if any)
+node_modules/
