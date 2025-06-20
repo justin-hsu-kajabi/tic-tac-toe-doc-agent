@@ -13,7 +13,7 @@ gem "rake"
 gem "json"
 
 # Doc agent dependencies
-gem "anthropic"
+gem "ruby-anthropic", "~> 0.4.2"
 gem "octokit", "~> 6.0"
 gem "base64"
 

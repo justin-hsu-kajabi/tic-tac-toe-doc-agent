@@ -1,5 +1,6 @@
 require 'base64'
 require 'octokit'
+require 'json'
 
 class DocUpdater
   def initialize
@@ -61,14 +62,36 @@ class DocUpdater
     client = Anthropic::Client.new
     
     response = client.messages(
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }]
+      parameters: {
+        model: 'claude-3-sonnet-20240229',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      }
     )
     
-    if response && response.content && response.content.first
-      response.content.first['text']
+    puts "Debug: Response class: #{response.class}"
+    puts "Debug: Response methods: #{response.methods.grep(/content|text|body/).join(', ')}"
+    
+    # Handle different response formats
+    if response.respond_to?(:dig)
+      # Hash response
+      if response.dig('content', 0, 'text')
+        response.dig('content', 0, 'text')
+      elsif response['choices'] && response['choices'][0] && response['choices'][0]['message']
+        response['choices'][0]['message']['content']
+      else
+        puts "Debug: Response structure: #{response.inspect}"
+        nil
+      end
+    elsif response.respond_to?(:content) && response.content.respond_to?(:first)
+      # Object response
+      response.content.first&.text
+    elsif response.respond_to?(:body)
+      # Raw response
+      body = JSON.parse(response.body) rescue response.body
+      body.dig('content', 0, 'text') if body.is_a?(Hash)
     else
+      puts "Debug: Unknown response format: #{response.inspect}"
       nil
     end
   rescue => e
