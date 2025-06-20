@@ -18,6 +18,10 @@ gem "faraday-retry"
 gem "octokit", "~> 6.0"
 gem "base64"
 
+# WebSocket support for multiplayer
+gem "faye-websocket"
+gem "eventmachine"
+
 group :development do
   gem "rerun"
 end
