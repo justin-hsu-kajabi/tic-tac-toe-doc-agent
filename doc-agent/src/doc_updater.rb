@@ -1,99 +1,44 @@
-require 'faraday'
+require 'anthropic'
 require 'base64'
 require 'octokit'
-require 'json'
 
 class DocUpdater
   def initialize
-    @api_key = ENV['GEMINI_API_KEY']
-    @base_url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+    @client = Anthropic::Client.new(api_key: ENV['ANTHROPIC_API_KEY'])
   end
 
   def update_documentation(doc_file, changes, pr_summary)
-    if @api_key.nil? || @api_key.empty?
-      puts "Warning: GEMINI_API_KEY not set or empty"
-      return nil
-    end
-    
-    puts "Gemini API key present: #{@api_key[0..10]}..."
-    
     # Get existing documentation content if it exists
     existing_content = get_existing_doc_content(doc_file)
-    puts "Existing content length: #{existing_content&.length || 0} characters"
+    puts "Updating #{doc_file} - existing content: #{existing_content&.length || 0} chars"
     
-    # Generate prompt for Gemini
+    # Generate prompt for Claude
     prompt = build_update_prompt(doc_file, existing_content, changes, pr_summary)
-    puts "Generated prompt length: #{prompt.length} characters"
+    puts "Generated prompt: #{prompt.length} chars"
     
-    # Call Gemini API
-    puts "Calling Gemini API..."
-    response = call_gemini_api(prompt)
+    # Call Claude API
+    puts "Calling Anthropic Claude API..."
+    response = @client.messages(
+      model: 'claude-3-sonnet-20240229',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    )
     
-    if response
-      puts "Gemini response received"
-      if response['error']
-        puts "Gemini API error: #{response['error']['message']}"
-        return nil
-      end
-      
-      if response['candidates'] && response['candidates'].first
-        content = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
-        if content&.strip&.empty?
-          puts "Gemini returned empty content"
-          nil
-        else
-          puts "Gemini generated #{content.length} characters"
-          content
-        end
-      else
-        puts "No candidates in Gemini response: #{response.inspect}"
-        nil
-      end
+    if response && response.content && response.content.first
+      content = response.content.first['text']
+      puts "Claude generated #{content.length} characters"
+      content
     else
-      puts "No response from Gemini API"
+      puts "No content generated from Claude"
       nil
     end
   rescue => e
-    puts "Error updating documentation with Gemini: #{e.message}"
+    puts "Error updating documentation: #{e.message}"
     puts e.backtrace.first(3).join("\n")
     nil
   end
 
   private
-
-  def call_gemini_api(prompt)
-    conn = Faraday.new(url: @base_url) do |faraday|
-      faraday.request :json
-      faraday.response :json
-      faraday.response :logger # Add logging
-      faraday.adapter Faraday.default_adapter
-    end
-
-    payload = {
-      contents: [
-        {
-          parts: [
-            {
-              text: prompt
-            }
-          ]
-        }
-      ]
-    }
-
-    puts "Sending request to Gemini API..."
-    response = conn.post do |req|
-      req.url "?key=#{@api_key}"
-      req.headers['Content-Type'] = 'application/json'
-      req.body = payload
-    end
-
-    puts "Response status: #{response.status}"
-    response.body
-  rescue => e
-    puts "API call failed: #{e.message}"
-    nil
-  end
 
   def get_existing_doc_content(doc_file)
     repo_name = ENV['GITHUB_REPOSITORY'] || 'user/repo'
