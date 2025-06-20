@@ -11,11 +11,16 @@ class WebhookHandler
     pr_data = payload['pull_request']
     repo_name = payload['repository']['full_name']
     
+    puts "Debug: PR data keys: #{pr_data.keys.join(', ')}"
+    puts "Debug: PR user: #{pr_data['user']&.inspect}"
+    
     # Skip if this is a documentation-only PR created by the doc agent
     pr_title = pr_data['title'] || ''
+    pr_user = pr_data.dig('user', 'login') || ''
+    
     if pr_title.include?('📚 Update documentation') || 
        pr_title.include?('doc-update') ||
-       pr_data['user']['login'] == 'github-actions[bot]'
+       pr_user == 'github-actions[bot]'
       puts "Skipping doc agent analysis for documentation-only PR: #{pr_title}"
       return
     end
