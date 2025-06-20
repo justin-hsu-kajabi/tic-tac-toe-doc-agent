@@ -15,6 +15,27 @@ rescue LoadError
   # GameStatistic not available, statistics features will be disabled
 end
 
+# Load Leaderboard model if it exists (for backward compatibility)
+begin
+  require_relative 'models/leaderboard'
+rescue LoadError
+  # Leaderboard not available, leaderboard features will be disabled
+end
+
+# Load Achievement model if it exists (for backward compatibility)
+begin
+  require_relative 'models/achievement'
+rescue LoadError
+  # Achievement not available, achievement features will be disabled
+end
+
+# Load Theme model if it exists (for backward compatibility)
+begin
+  require_relative 'models/theme'
+rescue LoadError
+  # Theme not available, theme features will be disabled
+end
+
 class Application < Sinatra::Base
   configure do
     db_config = {
@@ -199,6 +220,83 @@ class Application < Sinatra::Base
       
       result
     }
+  end
+
+  # Theme API Routes (only if Theme is available)
+  get '/api/themes' do
+    if defined?(Theme)
+      themes = Theme.all.order(:name)
+      
+      json themes.map { |theme|
+        {
+          id: theme.id,
+          name: theme.name,
+          style_type: theme.style_type,
+          description: theme.description,
+          primary_color: theme.primary_color,
+          secondary_color: theme.secondary_color,
+          accent_color: theme.accent_color,
+          board_color: theme.board_color,
+          cell_color: theme.cell_color,
+          text_color: theme.text_color,
+          hover_color: theme.hover_color,
+          is_default: theme.is_default,
+          css_variables: theme.to_css_variables
+        }
+      }
+    else
+      json({ error: 'Themes not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/themes/:id' do
+    if defined?(Theme)
+      theme = Theme.find_by(id: params[:id]) || Theme.find_by(style_type: params[:id])
+      
+      if theme
+        json({
+          id: theme.id,
+          name: theme.name,
+          style_type: theme.style_type,
+          description: theme.description,
+          primary_color: theme.primary_color,
+          secondary_color: theme.secondary_color,
+          accent_color: theme.accent_color,
+          board_color: theme.board_color,
+          cell_color: theme.cell_color,
+          text_color: theme.text_color,
+          hover_color: theme.hover_color,
+          is_default: theme.is_default,
+          css_variables: theme.to_css_variables,
+          css_string: theme.css_variable_string
+        })
+      else
+        status 404
+        json({ error: 'Theme not found' })
+      end
+    else
+      json({ error: 'Themes not available - please run database migrations' })
+    end
+  end
+  
+  get '/api/themes/default/current' do
+    if defined?(Theme)
+      theme = Theme.default_theme
+      
+      if theme
+        json({
+          id: theme.id,
+          name: theme.name,
+          style_type: theme.style_type,
+          css_variables: theme.to_css_variables,
+          css_string: theme.css_variable_string
+        })
+      else
+        json({ error: 'No default theme found' })
+      end
+    else
+      json({ error: 'Themes not available - please run database migrations' })
+    end
   end
 
   # Doc agent webhook endpoint

@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe</title>
     <style>
+        :root {
+            --theme-primary: #333333;
+            --theme-secondary: #ffffff;
+            --theme-accent: #007bff;
+            --theme-board: #f8f9fa;
+            --theme-cell: #ffffff;
+            --theme-text: #333333;
+            --theme-hover: #e9ecef;
+        }
+
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -12,36 +22,41 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: var(--theme-board);
+            color: var(--theme-text);
+            transition: all 0.3s ease;
         }
         .game-container {
             text-align: center;
-            background: white;
+            background: var(--theme-secondary);
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
         .board {
             display: grid;
             grid-template-columns: repeat(3, 100px);
             grid-gap: 5px;
             margin: 20px auto;
-            background-color: #333;
+            background-color: var(--theme-primary);
             padding: 5px;
             border-radius: 5px;
+            transition: all 0.3s ease;
         }
         .cell {
             width: 100px;
             height: 100px;
-            background-color: white;
+            background-color: var(--theme-cell);
             border: none;
             font-size: 2rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            color: var(--theme-text);
         }
         .cell:hover {
-            background-color: #f0f0f0;
+            background-color: var(--theme-hover);
         }
         .cell:disabled {
             cursor: not-allowed;
@@ -53,16 +68,34 @@
             min-height: 1.5rem;
         }
         .new-game-btn {
-            background-color: #007bff;
-            color: white;
+            background-color: var(--theme-accent);
+            color: var(--theme-secondary);
             border: none;
             padding: 0.5rem 1rem;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 0.25rem;
         }
         .new-game-btn:hover {
-            background-color: #0056b3;
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+        
+        .theme-selector {
+            background-color: var(--theme-cell);
+            color: var(--theme-text);
+            border: 2px solid var(--theme-accent);
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-selector:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
         }
     </style>
 </head>
@@ -74,6 +107,14 @@
             <button class="new-game-btn" onclick="window.location.href='multiplayer.html'">Play Multiplayer</button>
             <button class="new-game-btn" onclick="newGame()">Play Solo</button>
             <button class="new-game-btn" onclick="window.location.href='statistics.html'">View Statistics</button>
+            <button class="new-game-btn" onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="theme-selector" style="margin-right: 10px;">Theme:</label>
+            <select id="theme-selector" onchange="changeTheme()" class="theme-selector">
+                <option value="">Loading themes...</option>
+            </select>
         </div>
         
         <div class="status" id="status">Loading...</div>
@@ -152,8 +193,72 @@
             }
         }
 
-        // Initialize the game when page loads
-        document.addEventListener('DOMContentLoaded', newGame);
+        // Theme management
+        let availableThemes = [];
+
+        async function loadThemes() {
+            try {
+                const response = await fetch('/api/themes');
+                const themes = await response.json();
+                
+                if (!themes.error) {
+                    availableThemes = themes;
+                    populateThemeSelector();
+                    loadSavedTheme();
+                }
+            } catch (error) {
+                console.error('Error loading themes:', error);
+            }
+        }
+
+        function populateThemeSelector() {
+            const selector = document.getElementById('theme-selector');
+            selector.innerHTML = '<option value="">Select a theme...</option>';
+            
+            availableThemes.forEach(theme => {
+                const option = document.createElement('option');
+                option.value = theme.style_type;
+                option.textContent = `${theme.name} - ${theme.description}`;
+                if (theme.is_default) {
+                    option.textContent += ' (Default)';
+                }
+                selector.appendChild(option);
+            });
+        }
+
+        function changeTheme() {
+            const selector = document.getElementById('theme-selector');
+            const selectedTheme = availableThemes.find(theme => theme.style_type === selector.value);
+            
+            if (selectedTheme) {
+                applyTheme(selectedTheme);
+                localStorage.setItem('selectedTheme', selectedTheme.style_type);
+            }
+        }
+
+        function applyTheme(theme) {
+            const root = document.documentElement;
+            Object.entries(theme.css_variables).forEach(([property, value]) => {
+                root.style.setProperty(property, value);
+            });
+        }
+
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                const theme = availableThemes.find(t => t.style_type === savedTheme);
+                if (theme) {
+                    document.getElementById('theme-selector').value = savedTheme;
+                    applyTheme(theme);
+                }
+            }
+        }
+
+        // Initialize the game and themes when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            newGame();
+            loadThemes();
+        });
     </script>
 </body>
 </html>
