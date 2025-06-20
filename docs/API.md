@@ -295,8 +295,8 @@ Retrieve the aggregated game statistics for a given period (default is 30 days).
   "total_wins": 600,
   "total_draws": 200,
   "total_losses": 200,
-  "multiplayer_games": 400,
-  "solo_games": 600,
+  "multiplayer_games_percentage": 40.0,
+  "solo_games_percentage": 60.0,
   "average_game_duration": 4.75,
   "fastest_win_moves": 3,
   "longest_game_moves": 15
@@ -407,13 +407,15 @@ For more information on the game statistics system, please refer to the `docs/ST
 
 The Tic Tac Toe API includes a comprehensive leaderboard system to track player performance and rankings.
 
-### GET /api/leaderboard
+### Leaderboard API Endpoints
 
-Retrieve the leaderboard data.
+#### GET /api/leaderboard
+
+Retrieve the leaderboard for a specific metric (default is "wins").
 
 **Parameters:**
-- `type` (optional, string) - The type of leaderboard to retrieve ('wins', 'win_rate', or 'games')
-- `limit` (optional, integer) - The maximum number of players to return (default is 10, maximum is 50)
+- `type` (optional, string) - The leaderboard type, can be "wins", "total_games", or "win_rate"
+- `limit` (optional, integer) - The maximum number of entries to return (default is 10, maximum is 50)
 
 **Response:**
 ```json
@@ -432,7 +434,7 @@ Retrieve the leaderboard data.
     "losses": 10,
     "draws": 5,
     "total_games": 40,
-    "win_rate": 62.5
+    "win_rate": 62.50
   },
   {
     "player_name": "Alice",
@@ -446,31 +448,32 @@ Retrieve the leaderboard data.
 ]
 ```
 
-The leaderboard data includes the player's name, total wins, losses, draws, total games played, and win rate. The leaderboard can be sorted by different criteria, such as total wins, win rate, or total games played.
+### Leaderboard Metrics
 
-### Leaderboard Updates
+The leaderboard system tracks the following metrics for each player:
 
-The leaderboard is automatically updated after each game is completed. The game results are used to update the player's statistics, including their win-loss-draw record and other relevant metrics.
+- **Wins**: The total number of games won by the player.
+- **Losses**: The total number of games lost by the player.
+- **Draws**: The total number of games that ended in a draw for the player.
+- **Total Games**: The total number of games played by the player.
+- **Win Rate**: The percentage of games won by the player.
+- **Current Win Streak**: The player's current consecutive win streak.
+- **Best Win Streak**: The player's highest consecutive win streak.
+- **Fastest Win Moves**: The minimum number of moves required for the player to win a game.
+- **Last Game At**: The timestamp of the player's most recent game.
 
-For more information on the leaderboard system implementation, please refer to the `app/models/leaderboard.rb` file.
+### Achievements System
 
-## Code Changes
+The Tic Tac Toe API also includes an achievements system, which awards players for reaching certain milestones or accomplishments.
 
-The following code changes were made to implement the real-time multiplayer system and the game statistics and analytics features:
+The following achievements are currently available:
 
-1. **Implemented Multiplayer System**:
-   - Added WebSocket server implementation in `app/websocket_server.rb`
-   - Integrated WebSocket communication with the game API endpoints
-   - Handled player connection, disconnection, and game synchronization
+- **First Victory**: Win your first game.
+- **Streak Master**: Win 5 games in a row.
+- **Speed Demon**: Win a game in 3 moves or less.
+- **Undefeated Champion**: Win 10 games without a loss.
+- **Game Master**: Achieve a specific win-loss-draw ratio.
 
-2. **Implemented Game Statistics and Analytics**:
-   - Added `GameStatistic` model to track game-related metrics
-   - Implemented API endpoints for retrieving daily, weekly, and summary statistics
-   - Developed the statistics dashboard at the `/statistics` route
+When a player earns an achievement, it is recorded in the database, and the player can view their unlocked achievements in the user interface.
 
-3. **Implemented Leaderboard System**:
-   - Added `Leaderboard` model to track player performance and rankings
-   - Integrated leaderboard updates with the game result updates
-   - Implemented API endpoints for retrieving leaderboard data
-
-The code changes are detailed in the commit history and can be reviewed in the respective modified files.
+For more information on the leaderboard and achievements systems, please refer to the `docs/LEADERBOARD.md` file.
