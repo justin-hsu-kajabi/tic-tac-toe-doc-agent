@@ -101,6 +101,69 @@ fetch('/api/rooms/ABCD/join', {
 .catch(error => console.error('Error joining room:', error));
 ```
 
+## Game Statistics and Analytics System
+
+The Game Statistics system provides comprehensive analytics and tracking for tic-tac-toe gameplay. It automatically captures game metrics, aggregates daily statistics, and provides insights through a real-time dashboard.
+
+### Automatic Data Collection
+
+- **Game Tracking**: Every game automatically records duration, moves, winner, and game type.
+- **Daily Aggregation**: Statistics are aggregated by date for historical analysis.
+- **Real-time Updates**: Statistics update immediately when games finish.
+
+### Comprehensive Metrics
+
+- **Win/Loss/Draw Rates**: Track your success across all game types.
+- **Game Duration**: Average time spent per game.
+- **Move Efficiency**: Fastest wins and longest games.
+- **Game Type Distribution**: Solo vs multiplayer game preferences.
+
+### Performance Analytics
+
+- **Success Rates**: Detailed win percentages and trends.
+- **Speed Metrics**: Track improvement in game completion speed.
+- **Engagement Insights**: Monitor player activity and retention.
+
+### Usage
+
+#### Accessing the Statistics Dashboard
+
+You can access the game statistics dashboard by navigating to the `/statistics` route in your web browser.
+
+#### Retrieving Statistics via API
+
+The application provides the following API endpoints to access game statistics:
+
+```
+GET /api/statistics
+```
+Returns the current day's game statistics.
+
+```
+GET /api/statistics/summary
+```
+Returns a summary of game statistics for the last 30 days.
+
+Example usage:
+
+```javascript
+// Fetch daily statistics
+fetch('/api/statistics')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Daily Statistics:', data);
+  })
+  .catch(error => console.error('Error fetching statistics:', error));
+
+// Fetch 30-day summary
+fetch('/api/statistics/summary')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Statistics Summary:', data);
+  })
+  .catch(error => console.error('Error fetching statistics summary:', error));
+```
+
 ## Documentation Updates
 
 The documentation update process is handled by a custom "doc agent" that automatically updates the documentation based on changes in the codebase. The doc agent uses the Anthropic API to generate the updated documentation content.
