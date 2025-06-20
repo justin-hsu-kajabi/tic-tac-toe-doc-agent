@@ -1,10 +1,16 @@
 require 'base64'
 require 'octokit'
+require 'json'
 
 class DocUpdater
   def initialize
     @anthropic_key = ENV['ANTHROPIC_API_KEY']
     @gemini_key = ENV['GEMINI_API_KEY']
+    
+    puts "Debug: ANTHROPIC_API_KEY present: #{@anthropic_key ? 'yes' : 'no'}"
+    puts "Debug: ANTHROPIC_API_KEY length: #{@anthropic_key&.length || 0}"
+    puts "Debug: GEMINI_API_KEY present: #{@gemini_key ? 'yes' : 'no'}"
+    puts "Debug: Available environment variables: #{ENV.keys.select { |k| k.include?('API') || k.include?('ANTHROPIC') }.join(', ')}"
   end
 
   def update_documentation(doc_file, changes, pr_summary)
@@ -47,21 +53,52 @@ class DocUpdater
 
   def call_anthropic_api(prompt)
     require 'anthropic'
-    client = Anthropic::Client.new(api_key: @anthropic_key)
     
+    # Initialize client with access token directly - no global configuration needed
+    client = Anthropic::Client.new(access_token: @anthropic_key)
+    
+    # Use current model and proper parameters format
     response = client.messages(
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }]
+      parameters: {
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 4000,
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      }
     )
     
-    if response && response.content && response.content.first
-      response.content.first['text']
+    puts "Debug: Response class: #{response.class}"
+    puts "Debug: Response: #{response.inspect}"
+    
+    # Extract content from ruby-anthropic response
+    if response.is_a?(Hash)
+      # Look for standard Anthropic API response format
+      if response.dig("content", 0, "text")
+        response.dig("content", 0, "text")
+      elsif response["content"] && response["content"].is_a?(Array) && response["content"][0]
+        response["content"][0]["text"] || response["content"][0]["content"]
+      else
+        puts "Debug: Unexpected hash response format"
+        puts "Debug: Response keys: #{response.keys.join(', ')}"
+        nil
+      end
+    elsif response.respond_to?(:parsed_response)
+      # Handle HTTParty-style response
+      parsed = response.parsed_response
+      parsed.dig("content", 0, "text") if parsed.is_a?(Hash)
     else
+      puts "Debug: Unknown response type: #{response.class}"
       nil
     end
   rescue => e
     puts "Anthropic API error: #{e.message}"
+    puts "Debug: Error class: #{e.class}"
+    puts "Debug: API key present: #{@anthropic_key ? 'yes' : 'no'}"
+    puts "Debug: API key format: #{@anthropic_key&.start_with?('sk-ant-') ? 'correct' : 'incorrect'}"
     nil
   end
 
@@ -112,7 +149,9 @@ class DocUpdater
     
     begin
       file_content = client.contents(repo_name, path: doc_file)
-      Base64.decode64(file_content[:content])
+      content = Base64.decode64(file_content[:content])
+      # Force UTF-8 encoding to prevent encoding errors
+      content.force_encoding('UTF-8')
     rescue Octokit::NotFound
       # File doesn't exist, will create new one
       nil

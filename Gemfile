@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "~> 3.3"
+ruby "~> 3.0"
 
 gem "sinatra", "~> 3.0"
 gem "sinatra-contrib", "~> 3.0"
@@ -13,10 +13,10 @@ gem "rake"
 gem "json"
 
 # Doc agent dependencies
-gem "faraday"
+gem "ruby-anthropic", "~> 0.4.2"
+gem "faraday-retry"
 gem "octokit", "~> 6.0"
 gem "base64"
-gem "net-http"
 
 group :development do
   gem "rerun"
