@@ -1,4 +1,3 @@
-```markdown
 # Application Features
 
 ## Player Management
@@ -30,6 +29,78 @@ puts player.total_games # Output: 3
 puts player.win_rate # Output: 33.33
 ```
 
+## Real-Time Multiplayer System
+
+The application now includes a real-time multiplayer system, allowing two players to play tic-tac-toe against each other in real-time.
+
+### Multiplayer Architecture
+
+The multiplayer system consists of the following components:
+
+1. **Room Management System**: Handles the creation, joining, and management of game rooms.
+2. **WebSocket Server**: Manages the real-time communication between players using WebSocket connections.
+3. **Player Session Management**: Tracks player connections and game state for each player.
+4. **Game State Synchronization**: Ensures that both players see the same game state during the match.
+
+### Key Features
+
+#### Room Management
+
+- Players can create a new room by providing their player name.
+- Each room has a unique room code that can be shared with other players to join the game.
+- Rooms have a status of "waiting", "active", or "completed".
+- Rooms can accommodate up to 2 players.
+
+#### Player Management
+
+- Players are represented by the `Player` model, which has a `name`, `session_id`, and `symbol` (either "X" or "O").
+- Players are associated with a specific room and can have an opponent in the same room.
+- Players can check if it's their turn to make a move in the current game.
+
+#### Game State Synchronization
+
+- When a player makes a move, the game state is updated and broadcast to both players in real-time.
+- The `Game` model tracks the current state of the game board and the current player.
+- Moves are validated to ensure that only the player whose turn it is can make a move.
+
+### Usage Examples
+
+#### Creating a New Room
+
+```javascript
+// Create a new room with the player name "John Doe"
+fetch('/api/rooms', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ player_name: 'John Doe' })
+})
+.then(response => response.json())
+.then(data => {
+  console.log('Room created:', data.room_code);
+  console.log('Your session ID:', data.session_id);
+  console.log('Your player details:', data.player);
+})
+.catch(error => console.error('Error creating room:', error));
+```
+
+#### Joining an Existing Room
+
+```javascript
+// Join an existing room with the room code "ABCD" and player name "Jane Doe"
+fetch('/api/rooms/ABCD/join', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ player_name: 'Jane Doe' })
+})
+.then(response => response.json())
+.then(data => {
+  console.log('Joined room:', data.room_code);
+  console.log('Your session ID:', data.session_id);
+  console.log('Your player details:', data.player);
+})
+.catch(error => console.error('Error joining room:', error));
+```
+
 ## Documentation Updates
 
 The documentation update process is handled by a custom "doc agent" that automatically updates the documentation based on changes in the codebase. The doc agent uses the Anthropic API to generate the updated documentation content.
@@ -42,5 +113,3 @@ The doc agent's behavior can be customized using the following environment varia
 - `GEMINI_API_KEY`: The API key for the Gemini service, used for additional functionality (not currently implemented).
 
 The doc agent skips documentation-only PRs created by the agent itself to avoid an infinite loop of updates.
-
-```
