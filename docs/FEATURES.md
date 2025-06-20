@@ -112,4 +112,4 @@ The doc agent's behavior can be customized using the following environment varia
 - `ANTHROPIC_API_KEY`: The API key for the Anthropic service, used to generate the updated documentation content.
 - `GEMINI_API_KEY`: The API key for the Gemini service, used for additional functionality (not currently implemented).
 
-The doc agent skips documentation-only PRs created by the agent itself to avoid an infinite loop of updates.
+The doc agent skips documentation-only PRs created by the agent itself to avoid an infinite loop of updates. It now generates a single consolidated PR with all documentation updates, instead of creating a separate PR for each documentation file.
