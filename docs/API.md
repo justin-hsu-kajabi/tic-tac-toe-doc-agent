@@ -2,11 +2,7 @@
 
 ## Overview
 
-<<<<<<< HEAD
 This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, the API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
-=======
-This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, a comprehensive game statistics and analytics system has been added to track various game metrics.
->>>>>>> origin/main
 
 ## Base URL
 
@@ -248,7 +244,6 @@ The real-time communication between players is handled using WebSocket connectio
 For more information on the WebSocket server implementation, please refer to the `app/websocket_server.rb` file.
 
 ## Game Statistics and Analytics
-<<<<<<< HEAD
 
 The Tic Tac Toe API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
 
@@ -292,62 +287,6 @@ Retrieve the aggregated game statistics for a given period (default is 30 days).
 
 **Parameters:**
 - `period` (optional, integer) - Number of days to include in the summary
-
-**Response:**
-```json
-{
-  "total_games": 240,
-  "total_wins": 130,
-  "total_draws": 50,
-  "total_losses": 60,
-  "multiplayer_games_percentage": 55.0,
-  "solo_games_percentage": 45.0,
-  "average_game_duration": 3.75,
-  "fastest_win_moves": 3,
-  "longest_game_moves": 12
-}
-```
-
-The statistics provide insights into overall game performance, player behavior, and efficiency. This data can be used to analyze trends, identify areas for improvement, and track the progress of individual players or the community as a whole.
-
-## Code Changes
-
-The following code changes were made to implement the real-time multiplayer system and the game statistics and analytics features:
-=======
-
-The Tic Tac Toe API now includes a comprehensive game statistics and analytics system to track various game metrics.
->>>>>>> origin/main
-
-### Statistics Endpoints
-
-The following API endpoints are available for accessing game statistics:
-
-#### GET /api/statistics
-
-Retrieve the daily game statistics for the current date.
-
-**Response:**
-```json
-{
-  "total_games": 25,
-  "total_wins": 14,
-  "total_draws": 5,
-  "total_losses": 6,
-  "multiplayer_games": 12,
-  "solo_games": 13,
-  "average_game_duration": 3.25,
-  "fastest_win_moves": 4,
-  "longest_game_moves": 9,
-  "stat_date": "2023-04-15"
-}
-```
-
-#### GET /api/statistics/summary
-
-Retrieve the aggregated game statistics for a given period (default is 30 days).
-
-**Parameters:**
-- `period` (optional, integer) - Number of days to include in the statistics
 
 **Response:**
 ```json
@@ -463,3 +402,75 @@ The dashboard is available at the `/statistics` route and includes the following
 The dashboard utilizes various charts and graphs to present the data in an intuitive and visually appealing manner, enabling players and administrators to gain insights into the game's performance and player behavior.
 
 For more information on the game statistics system, please refer to the `docs/STATISTICS.md` file.
+
+## Leaderboard System
+
+The Tic Tac Toe API includes a comprehensive leaderboard system to track player performance and rankings.
+
+### GET /api/leaderboard
+
+Retrieve the leaderboard data.
+
+**Parameters:**
+- `type` (optional, string) - The type of leaderboard to retrieve ('wins', 'win_rate', or 'games')
+- `limit` (optional, integer) - The maximum number of players to return (default is 10, maximum is 50)
+
+**Response:**
+```json
+[
+  {
+    "player_name": "Charlie",
+    "wins": 20,
+    "losses": 3,
+    "draws": 1,
+    "total_games": 24,
+    "win_rate": 83.33
+  },
+  {
+    "player_name": "Eve",
+    "wins": 25,
+    "losses": 10,
+    "draws": 5,
+    "total_games": 40,
+    "win_rate": 62.5
+  },
+  {
+    "player_name": "Alice",
+    "wins": 15,
+    "losses": 5,
+    "draws": 2,
+    "total_games": 22,
+    "win_rate": 68.18
+  },
+  // Additional leaderboard entries
+]
+```
+
+The leaderboard data includes the player's name, total wins, losses, draws, total games played, and win rate. The leaderboard can be sorted by different criteria, such as total wins, win rate, or total games played.
+
+### Leaderboard Updates
+
+The leaderboard is automatically updated after each game is completed. The game results are used to update the player's statistics, including their win-loss-draw record and other relevant metrics.
+
+For more information on the leaderboard system implementation, please refer to the `app/models/leaderboard.rb` file.
+
+## Code Changes
+
+The following code changes were made to implement the real-time multiplayer system and the game statistics and analytics features:
+
+1. **Implemented Multiplayer System**:
+   - Added WebSocket server implementation in `app/websocket_server.rb`
+   - Integrated WebSocket communication with the game API endpoints
+   - Handled player connection, disconnection, and game synchronization
+
+2. **Implemented Game Statistics and Analytics**:
+   - Added `GameStatistic` model to track game-related metrics
+   - Implemented API endpoints for retrieving daily, weekly, and summary statistics
+   - Developed the statistics dashboard at the `/statistics` route
+
+3. **Implemented Leaderboard System**:
+   - Added `Leaderboard` model to track player performance and rankings
+   - Integrated leaderboard updates with the game result updates
+   - Implemented API endpoints for retrieving leaderboard data
+
+The code changes are detailed in the commit history and can be reviewed in the respective modified files.
