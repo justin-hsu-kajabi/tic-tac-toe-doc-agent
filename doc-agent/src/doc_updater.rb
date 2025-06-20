@@ -61,43 +61,48 @@ class DocUpdater
     
     client = Anthropic::Client.new
     
+    # Use the correct API format for ruby-anthropic gem
     response = client.messages(
       parameters: {
         model: 'claude-3-sonnet-20240229',
         max_tokens: 4000,
-        messages: [{ role: 'user', content: prompt }]
+        messages: [
+          {
+            "role": "user",
+            "content": prompt
+          }
+        ]
       }
     )
     
     puts "Debug: Response class: #{response.class}"
-    puts "Debug: Response methods: #{response.methods.grep(/content|text|body/).join(', ')}"
+    puts "Debug: Response: #{response.inspect}"
     
-    # Handle different response formats
-    if response.respond_to?(:dig)
-      # Hash response
-      if response.dig('content', 0, 'text')
-        response.dig('content', 0, 'text')
-      elsif response['choices'] && response['choices'][0] && response['choices'][0]['message']
-        response['choices'][0]['message']['content']
+    # Extract content from ruby-anthropic response
+    if response.is_a?(Hash)
+      # Look for standard Anthropic API response format
+      if response.dig("content", 0, "text")
+        response.dig("content", 0, "text")
+      elsif response["content"] && response["content"].is_a?(Array) && response["content"][0]
+        response["content"][0]["text"] || response["content"][0]["content"]
       else
-        puts "Debug: Response structure: #{response.inspect}"
+        puts "Debug: Unexpected hash response format"
+        puts "Debug: Response keys: #{response.keys.join(', ')}"
         nil
       end
-    elsif response.respond_to?(:content) && response.content.respond_to?(:first)
-      # Object response
-      response.content.first&.text
-    elsif response.respond_to?(:body)
-      # Raw response
-      body = JSON.parse(response.body) rescue response.body
-      body.dig('content', 0, 'text') if body.is_a?(Hash)
+    elsif response.respond_to?(:parsed_response)
+      # Handle HTTParty-style response
+      parsed = response.parsed_response
+      parsed.dig("content", 0, "text") if parsed.is_a?(Hash)
     else
-      puts "Debug: Unknown response format: #{response.inspect}"
+      puts "Debug: Unknown response type: #{response.class}"
       nil
     end
   rescue => e
     puts "Anthropic API error: #{e.message}"
+    puts "Debug: Error class: #{e.class}"
     puts "Debug: API key present: #{@anthropic_key ? 'yes' : 'no'}"
-    puts "Debug: API key length: #{@anthropic_key&.length || 0}"
+    puts "Debug: API key format: #{@anthropic_key&.start_with?('sk-ant-') ? 'correct' : 'incorrect'}"
     nil
   end
 
@@ -148,7 +153,9 @@ class DocUpdater
     
     begin
       file_content = client.contents(repo_name, path: doc_file)
-      Base64.decode64(file_content[:content])
+      content = Base64.decode64(file_content[:content])
+      # Force UTF-8 encoding to prevent encoding errors
+      content.force_encoding('UTF-8')
     rescue Octokit::NotFound
       # File doesn't exist, will create new one
       nil
