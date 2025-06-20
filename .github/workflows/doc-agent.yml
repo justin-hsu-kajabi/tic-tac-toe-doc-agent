@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.DOC_AGENT_PAT || secrets.GITHUB_TOKEN }}
         fetch-depth: 0
         
     - name: Set up Ruby
@@ -27,7 +27,7 @@ jobs:
       
     - name: Analyze PR and Update Documentation
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.DOC_AGENT_PAT || secrets.GITHUB_TOKEN }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         GITHUB_REPOSITORY: ${{ github.repository }}
       run: |
