@@ -9,6 +9,7 @@ A full-stack tic-tac-toe game built with Ruby/Sinatra and vanilla JavaScript, fe
 - 🎮 Clean, responsive web interface
 - 🔄 Real-time game state management
 - 📊 Game persistence with SQLite
+- 📈 Comprehensive game statistics and analytics
 
 ### Documentation Agent Features
 - 🤖 AI-powered documentation updates
@@ -79,131 +80,13 @@ GITHUB_REPOSITORY=username/repo-name
 
 The multiplayer system enables real-time tic-tac-toe gameplay between two players using WebSocket connections and room-based matchmaking. Players can create or join rooms using unique room codes and play against each other with live updates.
 
-### Architecture
+See [MULTIPLAYER.md](docs/MULTIPLAYER.md) for detailed documentation on the multiplayer system.
 
-#### Components
+## Game Statistics System
 
-1. **Room Management System** - Handles room creation, player joining, and game coordination
-2. **WebSocket Server** - Manages real-time communication between players
-3. **Player Session Management** - Tracks player connections and game state
-4. **Game State Synchronization** - Ensures both players see the same game state
+The Game Statistics system provides comprehensive analytics and tracking for tic-tac-toe gameplay. It automatically captures game metrics, aggregates daily statistics, and provides insights through a real-time dashboard.
 
-#### Data Models
-
-##### Room Model
-
-```ruby
-class Room < ActiveRecord::Base
-  has_many :games, dependent: :destroy
-  has_many :players, dependent: :destroy
-  
-  validates :code, presence: true, uniqueness: true
-  validates :status, inclusion: { in: %w[waiting active completed] }
-end
-```
-
-- **Attributes**:
-  - `code`: Unique room code
-  - `status`: Room status (waiting, active, completed)
-  - `max_players`: Maximum number of players per room (default: 2)
-
-##### Player Model
-
-```ruby
-class Player < ActiveRecord::Base
-  belongs_to :room, optional: true
-  
-  validates :name, presence: true
-  validates :session_id, presence: true, uniqueness: true, allow_nil: true
-  validates :symbol, inclusion: { in: %w[X O] }, allow_nil: true
-end
-```
-
-- **Attributes**:
-  - `name`: Player's name
-  - `session_id`: Unique session ID for the player
-  - `symbol`: Player's symbol in the game (X or O)
-  - `wins`, `losses`, `draws`: Player's game statistics
-
-##### Game Model
-
-```ruby
-class Game < ActiveRecord::Base
-  belongs_to :room, optional: true
-  serialize :board, type: Array
-  
-  def make_move(position, player_session_id = nil)
-    # Validate move and update game state
-  end
-end
-```
-
-- **Attributes**:
-  - `board`: Serialized game board
-  - `current_player`: Current player's symbol (X or O)
-  - `status`: Game status (playing, won, drawn)
-  - `player_x`, `player_o`: Names of the players
-
-### Usage
-
-#### Creating a Room
-
-To create a new multiplayer room, send a POST request to the `/api/rooms` endpoint with the player's name:
-
-```json
-{
-  "player_name": "Alice"
-}
-```
-
-The server will respond with the room code, the player's session ID, and the player's symbol:
-
-```json
-{
-  "room_code": "ABC123",
-  "session_id": "abcd1234",
-  "player": {
-    "name": "Alice",
-    "symbol": "X"
-  }
-}
-```
-
-#### Joining a Room
-
-To join an existing room, send a POST request to the `/api/rooms/{code}/join` endpoint with the player's name:
-
-```json
-{
-  "player_name": "Bob"
-}
-```
-
-The server will respond with the player's session ID and symbol:
-
-```json
-{
-  "session_id": "efgh5678",
-  "player": {
-    "name": "Bob",
-    "symbol": "O"
-  }
-}
-```
-
-#### Making a Move
-
-To make a move in the game, send a WebSocket message with the following format:
-
-```json
-{
-  "type": "move",
-  "position": 4,
-  "session_id": "abcd1234"
-}
-```
-
-The server will validate the move and update the game state, then broadcast the updated state to both players.
+See [STATISTICS.md](docs/STATISTICS.md) for detailed documentation on the game statistics features.
 
 ## Project Structure
 
@@ -214,6 +97,7 @@ tic-tac-toe-app/
 │   │   └── game.rb          # Game logic and state
 │   │   └── room.rb          # Room management
 │   │   └── player.rb        # Player management
+│   │   └── game_statistic.rb # Game statistics
 │   └── application.rb       # Main Sinatra application
 │   └── websocket_server.rb  # WebSocket server
 ├── doc-agent/
@@ -225,9 +109,11 @@ tic-tac-toe-app/
 ├── docs/
 │   └── API.md              # API documentation
 │   └── MULTIPLAYER.md      # Multiplayer system documentation
+│   └── STATISTICS.md       # Game statistics documentation
 ├── public/
 │   └── index.html          # Frontend interface
 │   └── multiplayer.html    # Multiplayer frontend
+│   └── statistics.html     # Statistics dashboard
 └── db/
     └── migrate/            # Database migrations
 ```
@@ -246,6 +132,7 @@ The `Game` model handles:
 - Win condition checking
 - Game state transitions
 - Board serialization
+- Game statistics tracking
 
 ### Documentation Agent Architecture
 
