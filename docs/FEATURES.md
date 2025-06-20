@@ -122,6 +122,7 @@ The Game Statistics system provides comprehensive analytics and tracking for tic
 
 - **Success Rates**: Detailed win percentages and trends.
 - **Speed Metrics**: Track improvement in game completion speed.
+
 ### Usage
 
 #### Accessing the Statistics Dashboard
@@ -187,6 +188,81 @@ fetch('/api/statistics/games?limit=10')
   })
   .catch(error => console.error('Error fetching recent games:', error));
 ```
+
+## Comprehensive Theme System for Visual Customization
+
+The application now includes a comprehensive theme system, allowing users to customize the visual appearance of the tic-tac-toe game.
+
+### Theme Management
+
+The `Theme` model represents a visual theme that can be applied to the game. It has the following attributes:
+
+- `name`: The name of the theme (required and unique)
+- `style_type`: The type of theme (e.g., "classic", "neon", "retro", "space", "ocean")
+- `description`: A description of the theme
+- `primary_color`: The primary color used in the theme
+- `secondary_color`: The secondary color used in the theme
+- `accent_color`: The accent color used in the theme
+- `board_color`: The color of the game board
+- `cell_color`: The color of the game cells
+- `text_color`: The color of the text
+- `hover_color`: The color used for hovering over game cells
+- `is_default`: Indicates if the theme is the default theme
+
+### Theme API
+
+The application provides the following API endpoints to manage themes:
+
+```
+GET /api/themes
+```
+Returns a list of all available themes.
+
+```
+GET /api/themes/:id
+```
+Returns the details of a specific theme.
+
+```
+POST /api/themes
+```
+Creates a new custom theme.
+
+```
+PUT /api/themes/:id
+```
+Updates an existing theme.
+
+```
+DELETE /api/themes/:id
+```
+Deletes a custom theme.
+
+### Theme Usage
+
+To use a theme, the client can set the corresponding CSS variables in the `<style>` section of the HTML page. For example:
+
+```html
+<style>
+    :root {
+        --theme-primary: #333333;
+        --theme-secondary: #ffffff;
+        --theme-accent: #007bff;
+        --theme-board: #f8f9fa;
+        --theme-cell: #ffffff;
+        --theme-text: #333333;
+        --theme-hover: #e9ecef;
+    }
+</style>
+```
+
+The client-side JavaScript can then use these CSS variables to apply the theme styles to the game elements.
+
+### Default Themes
+
+The application comes with a set of predefined default themes that users can choose from. These themes are seeded in the database and can be accessed through the `/api/themes` endpoint.
+
+To see the available default themes, you can run the `seed_themes.rb` script, which will output the list of themes and their details.
 
 ## Documentation Updates
 

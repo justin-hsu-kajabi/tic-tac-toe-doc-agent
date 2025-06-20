@@ -2,11 +2,7 @@
 
 ## Overview
 
-<<<<<<< HEAD
 This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, the API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
-=======
-This API provides endpoints for managing tic-tac-toe games. Players can create new games, make moves, and retrieve game state. The API now also includes a real-time multiplayer system, allowing players to create and join games with other users. Additionally, a comprehensive game statistics and analytics system has been added to track various game metrics.
->>>>>>> origin/main
 
 ## Base URL
 
@@ -248,7 +244,6 @@ The real-time communication between players is handled using WebSocket connectio
 For more information on the WebSocket server implementation, please refer to the `app/websocket_server.rb` file.
 
 ## Game Statistics and Analytics
-<<<<<<< HEAD
 
 The Tic Tac Toe API includes a comprehensive game statistics and analytics system to track player performance and game metrics.
 
@@ -296,68 +291,12 @@ Retrieve the aggregated game statistics for a given period (default is 30 days).
 **Response:**
 ```json
 {
-  "total_games": 240,
-  "total_wins": 130,
-  "total_draws": 50,
-  "total_losses": 60,
-  "multiplayer_games_percentage": 55.0,
-  "solo_games_percentage": 45.0,
-  "average_game_duration": 3.75,
-  "fastest_win_moves": 3,
-  "longest_game_moves": 12
-}
-```
-
-The statistics provide insights into overall game performance, player behavior, and efficiency. This data can be used to analyze trends, identify areas for improvement, and track the progress of individual players or the community as a whole.
-
-## Code Changes
-
-The following code changes were made to implement the real-time multiplayer system and the game statistics and analytics features:
-=======
-
-The Tic Tac Toe API now includes a comprehensive game statistics and analytics system to track various game metrics.
->>>>>>> origin/main
-
-### Statistics Endpoints
-
-The following API endpoints are available for accessing game statistics:
-
-#### GET /api/statistics
-
-Retrieve the daily game statistics for the current date.
-
-**Response:**
-```json
-{
-  "total_games": 25,
-  "total_wins": 14,
-  "total_draws": 5,
-  "total_losses": 6,
-  "multiplayer_games": 12,
-  "solo_games": 13,
-  "average_game_duration": 3.25,
-  "fastest_win_moves": 4,
-  "longest_game_moves": 9,
-  "stat_date": "2023-04-15"
-}
-```
-
-#### GET /api/statistics/summary
-
-Retrieve the aggregated game statistics for a given period (default is 30 days).
-
-**Parameters:**
-- `period` (optional, integer) - Number of days to include in the statistics
-
-**Response:**
-```json
-{
   "total_games": 1000,
   "total_wins": 600,
   "total_draws": 200,
   "total_losses": 200,
-  "multiplayer_games": 400,
-  "solo_games": 600,
+  "multiplayer_games_percentage": 40.0,
+  "solo_games_percentage": 60.0,
   "average_game_duration": 4.75,
   "fastest_win_moves": 3,
   "longest_game_moves": 15
@@ -463,3 +402,94 @@ The dashboard is available at the `/statistics` route and includes the following
 The dashboard utilizes various charts and graphs to present the data in an intuitive and visually appealing manner, enabling players and administrators to gain insights into the game's performance and player behavior.
 
 For more information on the game statistics system, please refer to the `docs/STATISTICS.md` file.
+
+## Theme System
+
+The Tic Tac Toe API now includes a comprehensive theme system, allowing players to customize the visual appearance of the game.
+
+### Available Themes
+
+The API includes a set of predefined themes that players can choose from:
+
+- **Classic**: Traditional black and white tic-tac-toe
+- **Neon Glow**: Futuristic neon theme with glowing effects
+- **Retro Gaming**: Nostalgic 8-bit inspired theme
+- **Space Odyssey**: Cosmic theme with planets and stars
+- **Underwater Oasis**: Serene underwater theme with ocean colors
+
+### Retrieving Themes
+
+Players can retrieve the available themes by making a `GET` request to the `/api/themes` endpoint:
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Classic",
+    "style_type": "classic",
+    "description": "Traditional black and white tic-tac-toe",
+    "primary_color": "#333333",
+    "secondary_color": "#ffffff",
+    "accent_color": "#007bff",
+    "board_color": "#f8f9fa",
+    "cell_color": "#ffffff",
+    "text_color": "#333333",
+    "hover_color": "#e9ecef",
+    "is_default": true
+  },
+  {
+    "id": 2,
+    "name": "Neon Glow",
+    "style_type": "neon",
+    "description": "Futuristic neon theme with glowing effects",
+    "primary_color": "#ff0080",
+    "secondary_color": "#00ffff",
+    "accent_color": "#ffff00",
+    "board_color": "#0a0a0a",
+    "cell_color": "#1a1a1a",
+    "text_color": "#ffffff",
+    "hover_color": "#ff008020",
+    "is_default": false
+  },
+  // Additional themes
+]
+```
+
+### Applying Themes
+
+To apply a theme, players can update their user preferences or settings to include the desired theme ID. The front-end application can then use the theme information to update the visual styling of the game.
+
+The theme-specific styles are applied to the HTML elements using CSS variables, making it easy to update the appearance without modifying the underlying HTML structure.
+
+For example, the `public/index.html` file includes the following CSS variables that are used to style the game board and elements:
+
+```css
+:root {
+    --theme-primary: #333333;
+    --theme-secondary: #ffffff;
+    --theme-accent: #007bff;
+    --theme-board: #f8f9fa;
+    --theme-cell: #ffffff;
+    --theme-text: #333333;
+    --theme-hover: #e9ecef;
+}
+```
+
+These variables can be updated based on the selected theme to change the colors and styles of the game.
+
+## Code Changes
+
+The following code changes were made to implement the real-time multiplayer system and the game statistics and analytics features:
+
+1. Added a `Theme` model to the application, which includes predefined themes with customizable colors and styles.
+2. Implemented the `/api/themes` endpoint to retrieve the available themes.
+3. Updated the front-end `public/index.html` file to use CSS variables for theme-specific styles, allowing for easy visual customization.
+4. Added a `GameStatistic` model to track game-related metrics, including game duration, move count, winner, and game type.
+5. Implemented the `/api/statistics` endpoints to retrieve daily, weekly, and summary game statistics.
+6. Created a web-based statistics dashboard to visualize the game analytics data.
+7. Integrated the real-time multiplayer system using WebSocket connections, allowing players to create and join games with other users.
+8. Implemented the `/api/rooms` and `/api/rooms/:code/join` endpoints for managing multiplayer rooms and player sessions.
+9. Updated the game flow to handle player disconnections and continue the game with the remaining player.
+
+For more details on the implementation, please refer to the respective code files and the `docs/STATISTICS.md` and `docs/MULTIPLAYER.md` documentation.
