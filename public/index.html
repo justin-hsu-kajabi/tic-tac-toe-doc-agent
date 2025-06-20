@@ -69,6 +69,12 @@
 <body>
     <div class="game-container">
         <h1>Tic Tac Toe</h1>
+        
+        <div style="margin-bottom: 20px;">
+            <button class="new-game-btn" onclick="window.location.href='multiplayer.html'">Play Multiplayer</button>
+            <button class="new-game-btn" onclick="newGame()">Play Solo</button>
+        </div>
+        
         <div class="status" id="status">Loading...</div>
         <div class="board" id="board"></div>
         <button class="new-game-btn" onclick="newGame()">New Game</button>

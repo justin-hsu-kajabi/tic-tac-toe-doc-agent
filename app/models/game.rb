@@ -1,9 +1,16 @@
 class Game < ActiveRecord::Base
+  belongs_to :room, optional: true
   serialize :board, type: Array
 
-  def make_move(position)
+  def make_move(position, player_session_id = nil)
     return false if position < 0 || position > 8
     return false if board[position] || status != 'playing'
+    
+    # For multiplayer games, validate turn
+    if room && player_session_id
+      player = room.players.find_by(session_id: player_session_id)
+      return false unless player&.is_turn?(self)
+    end
 
     self.board[position] = current_player
     

@@ -11,12 +11,30 @@ class WebhookHandler
     pr_data = payload['pull_request']
     repo_name = payload['repository']['full_name']
     
+    puts "Debug: PR data keys: #{pr_data.keys.join(', ')}"
+    puts "Debug: PR user: #{pr_data['user']&.inspect}"
+    
+    # Skip if this is a documentation-only PR created by the doc agent
+    pr_title = pr_data['title'] || ''
+    pr_user = pr_data.dig('user', 'login') || ''
+    
+    if pr_title.include?('📚 Update documentation') || 
+       pr_title.include?('doc-update') ||
+       pr_user == 'github-actions[bot]'
+      puts "Skipping doc agent analysis for documentation-only PR: #{pr_title}"
+      return
+    end
+    
+    puts "Processing PR ##{pr_data['number']} in #{repo_name}: #{pr_title}"
+    
     analyzer = PRAnalyzer.new
     doc_finder = DocFinder.new
     doc_updater = DocUpdater.new
     
     # Analyze the PR for documentation triggers
     analysis = analyzer.analyze_pr(pr_data, repo_name)
+    puts "Analysis complete. Needs doc update: #{analysis[:needs_doc_update]}"
+    puts "Found #{analysis[:changes].length} significant changes"
     
     if analysis[:needs_doc_update]
       # Find relevant documentation files
@@ -53,6 +71,8 @@ class WebhookHandler
     end
   rescue => e
     puts "Error processing PR webhook: #{e.message}"
+    puts e.backtrace.first(5).join("\n")
+    raise e
   end
 
   private
