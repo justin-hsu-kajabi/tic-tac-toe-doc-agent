@@ -122,55 +122,70 @@ The Game Statistics system provides comprehensive analytics and tracking for tic
 
 - **Success Rates**: Detailed win percentages and trends.
 - **Speed Metrics**: Track improvement in game completion speed.
+### Usage
 
-### Usage Examples
+#### Accessing the Statistics Dashboard
 
-#### Accessing Daily Statistics
+You can access the game statistics dashboard by navigating to the `/statistics` route in your web browser.
+
+#### Retrieving Statistics via API
+
+The application provides the following API endpoints to access game statistics:
+
+```
+GET /api/statistics
+```
+Returns the current day's game statistics.
+
+```
+GET /api/statistics/summary
+```
+Returns a summary of game statistics for the last 30 days.
+
+```
+GET /api/statistics/weekly
+```
+Returns weekly summary statistics.
+
+```
+GET /api/statistics/games
+```
+Returns recent completed games.
+
+Example usage:
 
 ```javascript
-// Fetch the statistics for the current day
+// Fetch daily statistics
 fetch('/api/statistics')
-.then(response => response.json())
-.then(data => {
-  console.log('Daily Statistics:', data);
-})
-.catch(error => console.error('Error fetching daily statistics:', error));
-```
+  .then(response => response.json())
+  .then(data => {
+    console.log('Daily Statistics:', data);
+  })
+  .catch(error => console.error('Error fetching daily statistics:', error));
 
-#### Accessing Summary Statistics
-
-```javascript
-// Fetch the summary statistics for the last 30 days
+// Fetch 30-day summary
 fetch('/api/statistics/summary?period=30')
-.then(response => response.json())
-.then(data => {
-  console.log('Summary Statistics:', data);
-})
-.catch(error => console.error('Error fetching summary statistics:', error));
-```
+  .then(response => response.json())
+  .then(data => {
+    console.log('Statistics Summary:', data);
+  })
+  .catch(error => console.error('Error fetching statistics summary:', error));
 
-#### Accessing Weekly Statistics
-
-```javascript
-// Fetch the weekly summary statistics
+// Fetch weekly summary statistics
 fetch('/api/statistics/weekly')
-.then(response => response.json())
-.then(data => {
-  console.log('Weekly Statistics:', data);
-})
-.catch(error => console.error('Error fetching weekly statistics:', error));
-```
+  .then(response => response.json())
+  .then(data => {
+    console.log('Weekly Statistics:', data);
+  })
+  .catch(error => console.error('Error fetching weekly statistics:', error));
 
-#### Accessing Recent Games
-
-```javascript
 // Fetch the 10 most recent games
 fetch('/api/statistics/games?limit=10')
-.then(response => response.json())
-.then(data => {
-  console.log('Recent Games:', data);
-})
-.catch(error => console.error('Error fetching recent games:', error));
+  .then(response => response.json())
+  .then(data => {
+    console.log('Recent Games:', data);
+  })
+  .catch(error => console.error('Error fetching recent games:', error));
 ```
 
 ## Documentation Updates
