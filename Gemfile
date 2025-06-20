@@ -13,9 +13,10 @@ gem "rake"
 gem "json"
 
 # Doc agent dependencies
-gem "anthropic"
+gem "faraday"
 gem "octokit", "~> 6.0"
 gem "base64"
+gem "net-http"
 
 group :development do
   gem "rerun"

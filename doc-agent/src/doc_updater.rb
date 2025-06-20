@@ -1,33 +1,66 @@
-require 'anthropic'
+require 'faraday'
 require 'base64'
 require 'octokit'
+require 'json'
 
 class DocUpdater
   def initialize
-    @client = Anthropic::Client.new(api_key: ENV['ANTHROPIC_API_KEY'])
+    @api_key = ENV['GEMINI_API_KEY']
+    @base_url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
   end
 
   def update_documentation(doc_file, changes, pr_summary)
+    return nil unless @api_key
+    
     # Get existing documentation content if it exists
     existing_content = get_existing_doc_content(doc_file)
     
-    # Generate prompt for Claude
+    # Generate prompt for Gemini
     prompt = build_update_prompt(doc_file, existing_content, changes, pr_summary)
     
-    # Call Claude API
-    response = @client.messages(
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: prompt }]
-    )
+    # Call Gemini API
+    response = call_gemini_api(prompt)
     
-    response.content.first['text']
+    if response && response['candidates'] && response['candidates'].first
+      content = response.dig('candidates', 0, 'content', 'parts', 0, 'text')
+      content&.strip&.empty? ? nil : content
+    else
+      nil
+    end
   rescue => e
-    puts "Error updating documentation: #{e.message}"
+    puts "Error updating documentation with Gemini: #{e.message}"
     nil
   end
 
   private
+
+  def call_gemini_api(prompt)
+    conn = Faraday.new(url: @base_url) do |faraday|
+      faraday.request :json
+      faraday.response :json
+      faraday.adapter Faraday.default_adapter
+    end
+
+    payload = {
+      contents: [
+        {
+          parts: [
+            {
+              text: prompt
+            }
+          ]
+        }
+      ]
+    }
+
+    response = conn.post do |req|
+      req.url "?key=#{@api_key}"
+      req.headers['Content-Type'] = 'application/json'
+      req.body = payload
+    end
+
+    response.body
+  end
 
   def get_existing_doc_content(doc_file)
     repo_name = ENV['GITHUB_REPOSITORY'] || 'user/repo'

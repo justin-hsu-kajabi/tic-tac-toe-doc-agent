@@ -1,0 +1,68 @@
+name: Documentation Agent
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main ]
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+        
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.0.6
+        bundler-cache: true
+        
+    - name: Install dependencies
+      run: bundle install
+      
+    - name: Analyze PR and Update Documentation
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        # Create a simple script to process the PR
+        cat > process_pr.rb << 'EOF'
+        require_relative 'doc-agent/src/webhook_handler'
+        
+        # Simulate webhook payload
+        payload = {
+          'action' => 'synchronize',
+          'pull_request' => {
+            'number' => ENV['GITHUB_PR_NUMBER'],
+            'title' => ENV['GITHUB_PR_TITLE'],
+            'base' => { 'ref' => ENV['GITHUB_BASE_REF'] },
+            'html_url' => ENV['GITHUB_PR_URL']
+          },
+          'repository' => {
+            'full_name' => ENV['GITHUB_REPOSITORY']
+          }
+        }
+        
+        puts "Processing PR for documentation updates with Gemini AI..."
+        WebhookHandler.process_pr(payload)
+        puts "Documentation processing complete!"
+        EOF
+        
+        # Set environment variables for the script
+        export GITHUB_PR_NUMBER=${{ github.event.pull_request.number }}
+        export GITHUB_PR_TITLE="${{ github.event.pull_request.title }}"
+        export GITHUB_BASE_REF=${{ github.event.pull_request.base.ref }}
+        export GITHUB_PR_URL=${{ github.event.pull_request.html_url }}
+        
+        # Run the documentation update (only if API key is available)
+        if [ -n "$GEMINI_API_KEY" ]; then
+          bundle exec ruby process_pr.rb
+        else
+          echo "GEMINI_API_KEY not set - skipping documentation generation"
+        fi

@@ -1,6 +1,6 @@
 # Tic Tac Toe with AI Documentation Agent
 
-A full-stack tic-tac-toe game built with Ruby/Sinatra and vanilla JavaScript, featuring an integrated AI-powered documentation maintenance system.
+A full-stack tic-tac-toe game built with Ruby/Sinatra and vanilla JavaScript, featuring an integrated AI-powered documentation maintenance system using Google Gemini.
 
 ## Features
 
@@ -66,7 +66,7 @@ The integrated documentation agent automatically:
 1. Set environment variables:
 ```bash
 GITHUB_TOKEN=your_github_token
-ANTHROPIC_API_KEY=your_anthropic_key
+GEMINI_API_KEY=your_gemini_api_key
 GITHUB_REPOSITORY=username/repo-name
 ```
 
@@ -117,7 +117,7 @@ The `Game` model handles:
 1. **WebhookHandler** processes GitHub PR events
 2. **PRAnalyzer** identifies significant code changes
 3. **DocFinder** maps changes to relevant documentation
-4. **DocUpdater** generates updated content using Claude AI
+4. **DocUpdater** generates updated content using Google Gemini AI
 
 ## Contributing
 
