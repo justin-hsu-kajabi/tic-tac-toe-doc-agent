@@ -18,6 +18,10 @@ gem "octokit", "~> 6.0"
 gem "base64"
 gem "net-http"
 
+# WebSocket support for multiplayer
+gem "faye-websocket"
+gem "eventmachine"
+
 group :development do
   gem "rerun"
 end

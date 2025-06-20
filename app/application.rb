@@ -5,6 +5,8 @@ require 'json'
 
 # Load models
 require_relative 'models/game'
+require_relative 'models/room'
+require_relative 'models/player'
 
 class Application < Sinatra::Base
   configure do
@@ -71,6 +73,65 @@ class Application < Sinatra::Base
       status 400
       json({ error: 'Invalid move' })
     end
+  end
+
+  # Multiplayer API Routes
+  post '/api/rooms' do
+    player_name = JSON.parse(request.body.read)['player_name']
+    return json({ error: 'Player name required' }) unless player_name
+    
+    room = Room.create!
+    session_id = SecureRandom.hex(16)
+    player = room.add_player(player_name, session_id)
+    
+    if player
+      json({
+        room_code: room.code,
+        session_id: session_id,
+        player: { name: player.name, symbol: player.symbol }
+      })
+    else
+      status 400
+      json({ error: 'Failed to create room' })
+    end
+  end
+  
+  post '/api/rooms/:code/join' do
+    data = JSON.parse(request.body.read)
+    player_name = data['player_name']
+    return json({ error: 'Player name required' }) unless player_name
+    
+    room = Room.find_by(code: params[:code])
+    return json({ error: 'Room not found' }) unless room
+    return json({ error: 'Room is full' }) if room.full?
+    
+    session_id = SecureRandom.hex(16)
+    player = room.add_player(player_name, session_id)
+    
+    if player
+      json({
+        room_code: room.code,
+        session_id: session_id,
+        player: { name: player.name, symbol: player.symbol },
+        players: room.players.map { |p| { name: p.name, symbol: p.symbol } },
+        ready_to_start: room.ready_to_start?
+      })
+    else
+      status 400
+      json({ error: 'Failed to join room' })
+    end
+  end
+  
+  get '/api/rooms/:code' do
+    room = Room.find_by(code: params[:code])
+    return json({ error: 'Room not found' }) unless room
+    
+    json({
+      code: room.code,
+      status: room.status,
+      players: room.players.map { |p| { name: p.name, symbol: p.symbol } },
+      current_game: room.current_game&.id
+    })
   end
 
   # Doc agent webhook endpoint
