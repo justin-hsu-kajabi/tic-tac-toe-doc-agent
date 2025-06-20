@@ -5,6 +5,11 @@ class DocUpdater
   def initialize
     @anthropic_key = ENV['ANTHROPIC_API_KEY']
     @gemini_key = ENV['GEMINI_API_KEY']
+    
+    puts "Debug: ANTHROPIC_API_KEY present: #{@anthropic_key ? 'yes' : 'no'}"
+    puts "Debug: ANTHROPIC_API_KEY length: #{@anthropic_key&.length || 0}"
+    puts "Debug: GEMINI_API_KEY present: #{@gemini_key ? 'yes' : 'no'}"
+    puts "Debug: Available environment variables: #{ENV.keys.select { |k| k.include?('API') || k.include?('ANTHROPIC') }.join(', ')}"
   end
 
   def update_documentation(doc_file, changes, pr_summary)
@@ -47,7 +52,13 @@ class DocUpdater
 
   def call_anthropic_api(prompt)
     require 'anthropic'
-    client = Anthropic::Client.new(api_key: @anthropic_key)
+    
+    # Configure the gem properly
+    Anthropic.configure do |config|
+      config.access_token = @anthropic_key
+    end
+    
+    client = Anthropic::Client.new
     
     response = client.messages(
       model: 'claude-3-sonnet-20240229',
@@ -62,6 +73,8 @@ class DocUpdater
     end
   rescue => e
     puts "Anthropic API error: #{e.message}"
+    puts "Debug: API key present: #{@anthropic_key ? 'yes' : 'no'}"
+    puts "Debug: API key length: #{@anthropic_key&.length || 0}"
     nil
   end
 
