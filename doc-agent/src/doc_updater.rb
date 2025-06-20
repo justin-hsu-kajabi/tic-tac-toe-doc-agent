@@ -4,10 +4,18 @@ require 'octokit'
 
 class DocUpdater
   def initialize
-    @client = Anthropic::Client.new(api_key: ENV['ANTHROPIC_API_KEY'])
+    @api_key = ENV['ANTHROPIC_API_KEY']
   end
 
   def update_documentation(doc_file, changes, pr_summary)
+    unless @api_key && !@api_key.empty?
+      puts "Warning: ANTHROPIC_API_KEY not set - skipping documentation generation"
+      return nil
+    end
+    
+    # Initialize client only when we have a key
+    client = Anthropic::Client.new(api_key: @api_key)
+    
     # Get existing documentation content if it exists
     existing_content = get_existing_doc_content(doc_file)
     puts "Updating #{doc_file} - existing content: #{existing_content&.length || 0} chars"
@@ -18,7 +26,7 @@ class DocUpdater
     
     # Call Claude API
     puts "Calling Anthropic Claude API..."
-    response = @client.messages(
+    response = client.messages(
       model: 'claude-3-sonnet-20240229',
       max_tokens: 4000,
       messages: [{ role: 'user', content: prompt }]
